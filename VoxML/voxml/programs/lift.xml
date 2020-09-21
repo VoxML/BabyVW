@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<VoxML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Entity Type="Program" />
+  <Lex>
+    <Pred>lift</Pred>
+    <Type>process</Type>
+  </Lex>
+  <Type>
+    <Head>process</Head>
+    <Components />
+    <Concavity />
+    <RotatSym />
+    <ReflSym />
+    <Args>
+      <Arg Value="x:agent" />
+      <Arg Value="y:physobj" />
+    </Args>
+    <Body>
+      <Subevent Value="grasp(x,y)" />
+      <Subevent Value="while(hold(x,y)^!at(y,loc(y)+&lt;0;.3;0&gt;)):move(x,y,loc(y)+&lt;0;.3;0&gt;,'')" />
+    </Body>
+    <Scale />
+    <Arity />
+    <Class />
+    <Value />
+    <Constr />
+  </Type>
+  <Habitat>
+    <Intrinsic />
+    <Extrinsic />
+  </Habitat>
+  <Afford_Str>
+    <Affordances />
+  </Afford_Str>
+  <Embodiment>
+    <Scale />
+    <Movable>false</Movable>
+  </Embodiment>
+  <Attributes>
+    <Attrs />
+  </Attributes>
+</VoxML>
