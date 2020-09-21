@@ -464,6 +464,8 @@ MonoBehaviour:
   interactableObjects: {fileID: 1804393135}
   surface: {fileID: 681278271}
   objectTypes: {fileID: 784435535}
+  numTotalObjs: 30
+  numInteractableObjs: 10
 --- !u!4 &130105525
 Transform:
   m_ObjectHideFlags: 0
@@ -496,7 +498,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &149051851
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1045,7 +1047,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &511245093
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1210,6 +1212,10 @@ PrefabInstance:
     - target: {fileID: 1632189569177846, guid: c0838f71047cde340b8320435418a398, type: 3}
       propertyPath: m_Name
       value: Rabbit
+      objectReference: {fileID: 0}
+    - target: {fileID: 1632189569177846, guid: c0838f71047cde340b8320435418a398, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4235038215153912, guid: c0838f71047cde340b8320435418a398, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1459,7 +1465,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &747627239
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1547,7 +1553,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &784435535
 Transform:
   m_ObjectHideFlags: 0
@@ -1582,7 +1588,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &830896828
 AudioListener:
   m_ObjectHideFlags: 0
@@ -2280,7 +2286,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1447959840
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2960,7 +2966,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1895398763
 BoxCollider:
   m_ObjectHideFlags: 0
