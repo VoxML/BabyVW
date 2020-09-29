@@ -59,10 +59,11 @@ public class ScenarioController : MonoBehaviour
             } while (Vector3.Magnitude(coord - floorPosition) < interactableRadius);
 
             GameObject newObj = Instantiate(t.gameObject);
-            newObj.name = newObj.name.Replace("(Clone", "");
+            newObj.name = newObj.name.Replace("(Clone)", "");
             newObj.transform.position = new Vector3(coord.x,
                 coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
-            //newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
+            newObj.AddComponent<Voxeme>();
+            newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
             newObj.transform.parent = interactableObjects.transform;
             voxemeInit.InitializeVoxemes();
@@ -82,10 +83,11 @@ public class ScenarioController : MonoBehaviour
             } while (Vector3.Magnitude(coord - floorPosition) > interactableRadius);
 
             GameObject newObj = Instantiate(t.gameObject);
-            newObj.name = newObj.name.Replace("(Clone", "");
+            newObj.name = newObj.name.Replace("(Clone)", "");
             newObj.transform.position = new Vector3(coord.x,
                 coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
-            //newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
+            newObj.AddComponent<Voxeme>();
+            newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
             newObj.transform.parent = interactableObjects.transform;
             voxemeInit.InitializeVoxemes();
