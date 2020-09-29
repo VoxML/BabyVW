@@ -7,10 +7,13 @@ using VoxSimPlatform.Global;
 
 public class ScenarioController : MonoBehaviour
 {
+    public float nearClipRadius;
     public float interactableRadius;
     public GameObject interactableObjects;
+    public GameObject backgroundObjects;
     public GameObject surface;
     public Transform objectTypes;
+    public List<Transform> interactableObjectTypes;
     public int numTotalObjs;
     public int numInteractableObjs;
 
@@ -46,12 +49,50 @@ public class ScenarioController : MonoBehaviour
     void PlaceRandomly(GameObject surface)
     {
         // place interactable objects
-        for (int i = 0; i < numInteractableObjs; i++)
+        // make sure some object types are set as interactable
+        if (interactableObjectTypes.Count > 0)
         {
+            for (int i = 0; i < numInteractableObjs; i++)
+            {
+                // choose a random object type (as long as it's an interactable object type)
+                Transform t;
+                do
+                {
+                    t = objectTypes.GetChild(RandomHelper.RandomInt(0, objectTypes.childCount - 1,
+                        (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive)));
+                } while (!interactableObjectTypes.Contains(t));
+                Debug.Log(string.Format("Creating new {0}", t.name));
+
+                // find a clear coordinate on the play surface within the interactable radius
+                //  (and beyond the near clip pane)
+                Vector3 coord;
+                do
+                {
+                    coord = GlobalHelper.FindClearRegion(surface, t.gameObject).center;
+                } while (Vector3.Magnitude(coord - floorPosition) > interactableRadius
+                    || Vector3.Magnitude(coord - floorPosition) < nearClipRadius);
+
+                GameObject newObj = Instantiate(t.gameObject);
+                newObj.name = newObj.name.Replace("(Clone)", "");
+                newObj.transform.position = new Vector3(coord.x,
+                    coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
+                newObj.AddComponent<Voxeme>();
+                newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
+
+                newObj.transform.parent = interactableObjects.transform;
+                voxemeInit.InitializeVoxemes();
+            }
+        }
+
+        // place non-interactable objects
+        for (int i = 0; i < numTotalObjs-numInteractableObjs; i++)
+        {
+            // choose a random object type
             Transform t = objectTypes.GetChild(RandomHelper.RandomInt(0, objectTypes.childCount - 1,
                 (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive)));
             Debug.Log(string.Format("Creating new {0}", t.name));
 
+            // find a clear coordinate on the play surface beyond the interactable radius
             Vector3 coord;
             do
             {
@@ -65,31 +106,7 @@ public class ScenarioController : MonoBehaviour
             newObj.AddComponent<Voxeme>();
             newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
-            newObj.transform.parent = interactableObjects.transform;
-            voxemeInit.InitializeVoxemes();
-        }
-
-        // place non-interactable objects
-        for (int i = 0; i < numTotalObjs-numInteractableObjs; i++)
-        {
-            Transform t = objectTypes.GetChild(RandomHelper.RandomInt(0, objectTypes.childCount - 1,
-                (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive)));
-            Debug.Log(string.Format("Creating new {0}", t.name));
-
-            Vector3 coord;
-            do
-            {
-                coord = GlobalHelper.FindClearRegion(surface, t.gameObject).center;
-            } while (Vector3.Magnitude(coord - floorPosition) > interactableRadius);
-
-            GameObject newObj = Instantiate(t.gameObject);
-            newObj.name = newObj.name.Replace("(Clone)", "");
-            newObj.transform.position = new Vector3(coord.x,
-                coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
-            newObj.AddComponent<Voxeme>();
-            newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
-
-            newObj.transform.parent = interactableObjects.transform;
+            newObj.transform.parent = backgroundObjects.transform;
             voxemeInit.InitializeVoxemes();
         }
     }
