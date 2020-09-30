@@ -79,6 +79,12 @@ public class ScenarioController : MonoBehaviour
                 newObj.AddComponent<Voxeme>();
                 newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
+                // add material
+                MaterialOptions materials = newObj.GetComponent<MaterialOptions>();
+                int materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
+                        (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+
                 newObj.transform.parent = interactableObjects.transform;
                 voxemeInit.InitializeVoxemes();
             }
@@ -105,6 +111,12 @@ public class ScenarioController : MonoBehaviour
                 coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
             newObj.AddComponent<Voxeme>();
             newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
+
+            // add material
+            MaterialOptions materials = newObj.GetComponent<MaterialOptions>();
+            int materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
+                    (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+            newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
 
             newObj.transform.parent = backgroundObjects.transform;
             voxemeInit.InitializeVoxemes();
