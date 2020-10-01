@@ -85,6 +85,9 @@ public class ScenarioController : MonoBehaviour
                         (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
                 newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
 
+                // tag
+                newObj.tag = "Perceptible";
+
                 newObj.transform.parent = interactableObjects.transform;
                 voxemeInit.InitializeVoxemes();
             }
@@ -117,6 +120,9 @@ public class ScenarioController : MonoBehaviour
             int materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
                     (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
             newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+
+            // tag
+            newObj.tag = "Perceptible";
 
             newObj.transform.parent = backgroundObjects.transform;
             voxemeInit.InitializeVoxemes();
