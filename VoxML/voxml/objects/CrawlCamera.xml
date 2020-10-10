@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<VoxML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Entity Type="Object" />
+  <Lex>
+    <Pred>self</Pred>
+    <Type>humant</Type>
+  </Lex>
+  <Type>
+    <Head>humanoid[1]</Head>
+    <Components />
+    <Concavity>Convex</Concavity>
+    <RotatSym />
+    <ReflSym>YZ</ReflSym>
+    <Args />
+    <Body />
+    <Scale />
+    <Arity />
+    <Class />
+    <Value />
+    <Constr />
+  </Type>
+  <Habitat>
+    <Intrinsic />
+    <Extrinsic />
+  </Habitat>
+  <Afford_Str>
+    <Affordances />
+  </Afford_Str>
+  <Embodiment>
+    <Scale>=agent</Scale>
+    <Movable>true</Movable>
+  </Embodiment>
+  <Attributes />
+</VoxML>
