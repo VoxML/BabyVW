@@ -48,6 +48,5 @@ public class AgentMovement : MonoBehaviour
         //  Rather than hard-code the amount by which each key press changes the target rotation, make it an editable public field by declaring a public float or public double at the
         //   top of this class.  Then you will be able to change the amount directly through the Unity Editor.
         //  Select CrawlCamera in the hierarchy and inspect its Voxeme component.  By changing the value of "Turn Speed" you can change how fast the camera turns
-
     }
 }
