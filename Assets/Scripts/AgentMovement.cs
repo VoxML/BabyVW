@@ -1,9 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
+using VoxSimPlatform.Vox;
+using VoxSimPlatform.Global;
 
 public class AgentMovement : MonoBehaviour
 {
+    public float anglerotation;
+    public float anglerotation_up_down;
+
     // TODO: declare the agent GameObject here
+
+    public GameObject agent;
 
     // Use this for initialization
     void Start()
@@ -22,6 +29,32 @@ public class AgentMovement : MonoBehaviour
 
         // Recommendation: call a different method under each key-press to keep things clean and modular
         // See here for handling key inputs: https://docs.unity3d.com/ScriptReference/Input.html (the "GetKey..." methods)
+
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            Turn_left();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            Turn_right();
+
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            Turn_up();
+
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            Turn_down();
+        }
+
+
+
 
         // To move an object in VoxSim, the object must have a "Voxeme" component (click on "CrawlCamera" in the Unity hierarchy to view it
         //  in the inspector to see that it has a Voxeme component assigned).  To use the Voxeme component, the object must have an equivalent
@@ -48,5 +81,54 @@ public class AgentMovement : MonoBehaviour
         //  Rather than hard-code the amount by which each key press changes the target rotation, make it an editable public field by declaring a public float or public double at the
         //   top of this class.  Then you will be able to change the amount directly through the Unity Editor.
         //  Select CrawlCamera in the hierarchy and inspect its Voxeme component.  By changing the value of "Turn Speed" you can change how fast the camera turns
+    }
+
+    void Turn_left()
+    {
+        //Debug.Log("Your message here");
+        Vector3 curRotation = GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().transform.eulerAngles;
+
+
+        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x, curRotation.y + anglerotation, curRotation.z);
+
+
+    }
+
+
+    void Turn_right()
+
+    {
+        Vector3 curRotation = GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().transform.eulerAngles;
+
+
+        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x, curRotation.y - anglerotation, curRotation.z);
+
+
+
+    }
+
+
+
+    void Turn_up()
+
+    {
+        Vector3 curRotation = GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().transform.eulerAngles;
+
+
+        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x + anglerotation_up_down, curRotation.y, curRotation.z);
+
+
+    }
+
+
+    void Turn_down()
+
+    {
+        Vector3 curRotation = GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().transform.eulerAngles;
+
+
+        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x - anglerotation_up_down, curRotation.y, curRotation.z);
+
+
     }
 }
