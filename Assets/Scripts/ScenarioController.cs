@@ -25,6 +25,13 @@ public class ScenarioController : MonoBehaviour
 
     VoxemeInit voxemeInit;
 
+    Dictionary<string, string> objectToVoxemePredMap = new Dictionary<string, string>()
+    {
+        { "Cube","block" },
+        { "Sphere","ball" },
+        { "Cylinder","cylinder" }
+    };
+
     // Start is called before the first frame update
     void Start()
     {
@@ -73,10 +80,11 @@ public class ScenarioController : MonoBehaviour
                     || Vector3.Magnitude(coord - floorPosition) < nearClipRadius);
 
                 GameObject newObj = Instantiate(t.gameObject);
-                newObj.name = newObj.name.Replace("(Clone)", "");
+                newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}",i));
                 newObj.transform.position = new Vector3(coord.x,
                     coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
                 newObj.AddComponent<Voxeme>();
+                newObj.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
                 newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
                 // add material
@@ -84,6 +92,10 @@ public class ScenarioController : MonoBehaviour
                 int materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
                         (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
                 newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+
+                // add material name as attribute
+                newObj.AddComponent<AttributeSet>();
+                newObj.GetComponent<AttributeSet>().attributes.Add(materials.materialOptions[materialIndex].name.ToLower());
 
                 // tag
                 newObj.tag = "Perceptible";
@@ -109,10 +121,11 @@ public class ScenarioController : MonoBehaviour
             } while (Vector3.Magnitude(coord - floorPosition) < interactableRadius);
 
             GameObject newObj = Instantiate(t.gameObject);
-            newObj.name = newObj.name.Replace("(Clone)", "");
+            newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}", i+numInteractableObjs));
             newObj.transform.position = new Vector3(coord.x,
                 coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
             newObj.AddComponent<Voxeme>();
+            newObj.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
             newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
             // add material
@@ -120,6 +133,10 @@ public class ScenarioController : MonoBehaviour
             int materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
                     (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
             newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+
+            // add material name as attribute
+            newObj.AddComponent<AttributeSet>();
+            newObj.GetComponent<AttributeSet>().attributes.Add(materials.materialOptions[materialIndex].name.ToLower());
 
             // tag
             newObj.tag = "Perceptible";
