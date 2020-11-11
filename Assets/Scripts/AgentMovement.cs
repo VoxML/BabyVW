@@ -56,7 +56,7 @@ public class AgentMovement : MonoBehaviour
     {
         Vector3 curRotation = GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().transform.eulerAngles;
 
-        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x, curRotation.y + rotationIntervalY, curRotation.z);
+        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x, curRotation.y - rotationIntervalY, curRotation.z);
     }
 
 
@@ -64,7 +64,7 @@ public class AgentMovement : MonoBehaviour
     {
         Vector3 curRotation = GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().transform.eulerAngles;
 
-        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x, curRotation.y - rotationIntervalY, curRotation.z);
+        GlobalHelper.GetMostImmediateParentVoxeme(agent).GetComponent<Voxeme>().targetRotation = new Vector3(curRotation.x, curRotation.y + rotationIntervalY, curRotation.z);
     }
 
 
