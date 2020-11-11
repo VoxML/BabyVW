@@ -17,6 +17,10 @@ public class ScenarioController : MonoBehaviour
     public int numTotalObjs;
     public int numInteractableObjs;
 
+    public bool attemptUniqueAttributes;
+
+    Dictionary<string, List<string>> instantiatedAttributes = new Dictionary<string, List<string>>();
+
     Camera mainCamera;
 
     Vector3 floorPosition;
@@ -38,6 +42,11 @@ public class ScenarioController : MonoBehaviour
         mainCamera = Camera.main;
 
         floorPosition = new Vector3(mainCamera.transform.position.x, 0.0f, mainCamera.transform.position.z);
+
+        foreach (string objType in objectToVoxemePredMap.Keys)
+        {
+            instantiatedAttributes[objType] = new List<string>();
+        }
 
         voxemeInit = GameObject.Find("VoxWorld").GetComponent<VoxemeInit>();
         objectsInited = false;
@@ -88,10 +97,40 @@ public class ScenarioController : MonoBehaviour
                 newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
                 // add material
+                int materialIndex = 0;
                 MaterialOptions materials = newObj.GetComponent<MaterialOptions>();
-                int materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
-                        (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
-                newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+
+                if (attemptUniqueAttributes)
+                {
+                    for (int m = 0; m < materials.materialOptions.Count; m++)
+                    {
+                        if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[m].name.ToLower())) 
+                        {
+                            materialIndex = m;
+                            break;
+                        }
+                    }
+
+                    if (materialIndex == materials.materialOptions.Count)
+                    {
+                        materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
+                            (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                    }
+
+                    newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+                }
+                else
+                {
+                    materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
+                            (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                    newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+                }
+
+                // add material name to instantiated attributes
+                if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[materialIndex].name.ToLower()))
+                {
+                    instantiatedAttributes[t.name].Add(materials.materialOptions[materialIndex].name.ToLower());
+                }
 
                 // add material name as attribute
                 newObj.AddComponent<AttributeSet>();
@@ -129,10 +168,40 @@ public class ScenarioController : MonoBehaviour
             newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
             // add material
+            int materialIndex = 0;
             MaterialOptions materials = newObj.GetComponent<MaterialOptions>();
-            int materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
-                    (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
-            newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+
+            if (attemptUniqueAttributes)
+            {
+                for (int m = 0; m < materials.materialOptions.Count; m++)
+                {
+                    if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[m].name.ToLower()))
+                    {
+                        materialIndex = m;
+                        break;
+                    }
+                }
+
+                if (materialIndex == materials.materialOptions.Count)
+                {
+                    materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
+                        (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                }
+
+                newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+            }
+            else
+            {
+                materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
+                        (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+            }
+
+            // add material name to instantiated attributes
+            if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[materialIndex].name.ToLower()))
+            {
+                instantiatedAttributes[t.name].Add(materials.materialOptions[materialIndex].name.ToLower());
+            }
 
             // add material name as attribute
             newObj.AddComponent<AttributeSet>();

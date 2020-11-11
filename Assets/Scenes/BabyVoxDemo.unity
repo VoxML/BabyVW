@@ -487,6 +487,7 @@ MonoBehaviour:
   - {fileID: 0}
   numTotalObjs: 30
   numInteractableObjs: 10
+  attemptUniqueAttributes: 1
 --- !u!4 &130105525
 Transform:
   m_ObjectHideFlags: 0
@@ -676,7 +677,7 @@ PrefabInstance:
     - target: {fileID: 4096955781832788729, guid: 1d104b2c6fd8e45d9a2953c2779e4ad0,
         type: 3}
       propertyPath: bindOnSupport
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8370107686997645960, guid: 1d104b2c6fd8e45d9a2953c2779e4ad0,
         type: 3}
