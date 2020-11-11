@@ -673,6 +673,11 @@ PrefabInstance:
       propertyPath: alignmentPreference
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4096955781832788729, guid: 1d104b2c6fd8e45d9a2953c2779e4ad0,
+        type: 3}
+      propertyPath: bindOnSupport
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8370107686997645960, guid: 1d104b2c6fd8e45d9a2953c2779e4ad0,
         type: 3}
       propertyPath: m_Name
@@ -2298,7 +2303,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialOptions:
-  - {fileID: 2100000, guid: 531a084652f004cae8c75c88f3a3a3f2, type: 2}
   - {fileID: 2100000, guid: 3e13c3eb4fcbb4eb5b81e16024e2b261, type: 2}
   - {fileID: 2100000, guid: d46f07753571c43b3ab05d97db199209, type: 2}
   - {fileID: 2100000, guid: 17a45c89c21984614b1a950acbee39e3, type: 2}
@@ -2320,10 +2324,8 @@ MonoBehaviour:
   - {fileID: 2100000, guid: eaf03b2b0051840d197eb874af5eb76f, type: 2}
   - {fileID: 2100000, guid: 990424a59bc3d401496ebeae37352d69, type: 2}
   - {fileID: 2100000, guid: b445e2b05e6de494aa26722696a6c12c, type: 2}
+  - {fileID: 2100000, guid: b445e2b05e6de494aa26722696a6c12c, type: 2}
   - {fileID: 2100000, guid: 8c554927de07447aa9c3aaf41aee56af, type: 2}
-  - {fileID: 2100000, guid: 5b1c8e62bfe724ada9ab9ee071d7a2f7, type: 2}
-  - {fileID: 2100000, guid: 54c685f6655e44690a954d084bfb9d67, type: 2}
-  - {fileID: 2100000, guid: 20e72b407144f4f528ad7e14d023746d, type: 2}
 --- !u!1 &1284988072
 GameObject:
   m_ObjectHideFlags: 0
