@@ -488,6 +488,7 @@ MonoBehaviour:
   numTotalObjs: 30
   numInteractableObjs: 10
   attemptUniqueAttributes: 1
+  postEventWaitTimerTime: 2000
 --- !u!4 &130105525
 Transform:
   m_ObjectHideFlags: 0
@@ -1341,6 +1342,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46e056a22b51047b9bde33a27b34d76d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  voxml:
+    Lex:
+      Pred: 
+      Type: 
+    Type:
+      Head: 
+      Components: []
+      Concavity: 
+      RotatSym: 
+      ReflSym: 
+      Args: []
+      Body: []
+      Scale: 
+      Arity: 
+      Class: 
+      Value: 
+      Constr: 
+      Referent: 
+      Mapping: 
+      Corresps: []
+    Habitat:
+      Intrinsic: []
+      Extrinsic: []
+    Afford_Str:
+      Affordances: []
+    Embodiment:
+      Scale: 
+      Movable: 0
+    Attributes:
+      Attrs: []
   predicate: self
   density: 0
   graspConvention: {fileID: 0}
