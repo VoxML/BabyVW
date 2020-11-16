@@ -16,7 +16,7 @@ public class ImageCapture : MonoBehaviour
             GUILayout.BeginVertical();
             if (GUILayout.Button("Save RGB Image"))
             {
-                ((ImageCapture)target).SaveRGB();
+                ((ImageCapture)target).SaveRGB("RGB.png");
             }
             if (GUILayout.Button("Save Depth Image"))
             {
@@ -40,7 +40,7 @@ public class ImageCapture : MonoBehaviour
         
     }
 
-    void SaveRGB()
+    public void SaveRGB(string filename)
     {
         // TODO: automate generated and saving of images using REST API or similar
         int resWidth = 3840;
@@ -56,12 +56,11 @@ public class ImageCapture : MonoBehaviour
         RenderTexture.active = null; // JC: added to avoid errors
         Destroy(rt);
         byte[] bytes = screenShot.EncodeToPNG();
-        string filename = "RGB.png"; //ScreenShotName(resWidth, resHeight);
         System.IO.File.WriteAllBytes(filename, bytes);
         Debug.Log(string.Format("Screenshot saved to: {0}", filename));
     }
 
-    void SaveDepth()
+    public void SaveDepth()
     {
         Debug.Log("Doesn't work yet!");
         return;

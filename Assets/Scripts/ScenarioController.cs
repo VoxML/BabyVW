@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Timers;
 
-using VoxSimPlatform.Vox;
+using VoxSimPlatform.Core;
 using VoxSimPlatform.Global;
+using VoxSimPlatform.Vox;
 
 public class ScenarioController : MonoBehaviour
 {
@@ -16,8 +18,15 @@ public class ScenarioController : MonoBehaviour
     public List<Transform> interactableObjectTypes;
     public int numTotalObjs;
     public int numInteractableObjs;
-
     public bool attemptUniqueAttributes;
+    public int postEventWaitTimerTime;
+
+    Timer postEventWaitTimer;
+
+    EventManager eventManager;
+    VoxemeInit voxemeInit;
+
+    ImageCapture imageCapture;
 
     Dictionary<string, List<string>> instantiatedAttributes = new Dictionary<string, List<string>>();
 
@@ -27,7 +36,7 @@ public class ScenarioController : MonoBehaviour
 
     bool objectsInited;
 
-    VoxemeInit voxemeInit;
+    bool savePostEventImage = false;
 
     Dictionary<string, string> objectToVoxemePredMap = new Dictionary<string, string>()
     {
@@ -39,6 +48,16 @@ public class ScenarioController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        eventManager = GameObject.Find("BehaviorController").GetComponent<EventManager>();
+        eventManager.ExecuteEvent += ExecutingEvent;
+        eventManager.QueueEmpty += CompletedEvent;
+
+        postEventWaitTimer = new Timer(postEventWaitTimerTime);
+        postEventWaitTimer.Enabled = false;
+        postEventWaitTimer.Elapsed += PostEventWaitComplete;
+
+        imageCapture = GameObject.Find("ImageCapture").GetComponent<ImageCapture>();
+
         mainCamera = Camera.main;
 
         floorPosition = new Vector3(mainCamera.transform.position.x, 0.0f, mainCamera.transform.position.z);
@@ -59,6 +78,12 @@ public class ScenarioController : MonoBehaviour
         {
             PlaceRandomly(surface);
             objectsInited = true;
+        }
+
+        if (savePostEventImage)
+        {
+            imageCapture.SaveRGB("RGB3.png");
+            savePostEventImage = false;
         }
     }
 
@@ -213,5 +238,29 @@ public class ScenarioController : MonoBehaviour
             newObj.transform.parent = backgroundObjects.transform;
             voxemeInit.InitializeVoxemes();
         }
+    }
+
+    void ExecutingEvent(object sender, EventArgs e)
+    {
+        Debug.LogFormat("ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
+        if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
+        {
+            imageCapture.SaveRGB("RGB1.png");
+        }
+    }
+
+    void CompletedEvent(object sender, EventArgs e)
+    {
+        Debug.LogFormat("CompletedEvent: {0}", ((EventManagerArgs)e).EventString);
+        postEventWaitTimer.Enabled = true;
+        imageCapture.SaveRGB("RGB2.png");
+    }
+
+    void PostEventWaitComplete(object sender, ElapsedEventArgs e)
+    {
+        Debug.LogFormat("PostEventWaitComplete");
+        postEventWaitTimer.Interval = postEventWaitTimerTime;
+        postEventWaitTimer.Enabled = false;
+        savePostEventImage = true;
     }
 }
