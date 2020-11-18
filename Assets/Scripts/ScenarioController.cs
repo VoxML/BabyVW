@@ -48,14 +48,19 @@ public class ScenarioController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // get the event manager component and add event handler callbacks when the
+        //  for when the event starts executing and when it finishes
         eventManager = GameObject.Find("BehaviorController").GetComponent<EventManager>();
         eventManager.ExecuteEvent += ExecutingEvent;
         eventManager.QueueEmpty += CompletedEvent;
 
+        // create the pose event wait timer (do not start it) and
+        //  and timer callback
         postEventWaitTimer = new Timer(postEventWaitTimerTime);
         postEventWaitTimer.Enabled = false;
         postEventWaitTimer.Elapsed += PostEventWaitComplete;
 
+        // get the image capture component to save images
         imageCapture = GameObject.Find("ImageCapture").GetComponent<ImageCapture>();
 
         mainCamera = Camera.main;
