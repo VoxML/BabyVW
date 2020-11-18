@@ -82,7 +82,10 @@ public class ScenarioController : MonoBehaviour
 
         if (savePostEventImage)
         {
-            imageCapture.SaveRGB("RGB3.png");
+            // save the "after wait" image
+            imageCapture.SaveRGB("RGB3.png");   // TODO: create unique filename
+
+            // reset flag
             savePostEventImage = false;
         }
     }
@@ -245,22 +248,31 @@ public class ScenarioController : MonoBehaviour
         Debug.LogFormat("ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
         if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
         {
-            imageCapture.SaveRGB("RGB1.png");
+            // save the "before event" image
+            imageCapture.SaveRGB("RGB1.png");   // TODO: create unique filename
         }
     }
 
     void CompletedEvent(object sender, EventArgs e)
     {
         Debug.LogFormat("CompletedEvent: {0}", ((EventManagerArgs)e).EventString);
+
+        // start the wait timer
         postEventWaitTimer.Enabled = true;
-        imageCapture.SaveRGB("RGB2.png");
+
+        // save the "after event" image
+        imageCapture.SaveRGB("RGB2.png");   // TODO: create unique filename
     }
 
     void PostEventWaitComplete(object sender, ElapsedEventArgs e)
     {
         Debug.LogFormat("PostEventWaitComplete");
+
+        // stop and reset the wait timer
         postEventWaitTimer.Interval = postEventWaitTimerTime;
         postEventWaitTimer.Enabled = false;
+
+        // set flag
         savePostEventImage = true;
     }
 }
