@@ -38,6 +38,8 @@ public class ScenarioController : MonoBehaviour
 
     bool savePostEventImage = false;
 
+    // TODO: declare your socket handler here
+
     Dictionary<string, string> objectToVoxemePredMap = new Dictionary<string, string>()
     {
         { "Cube","block" },
@@ -53,6 +55,8 @@ public class ScenarioController : MonoBehaviour
         eventManager = GameObject.Find("BehaviorController").GetComponent<EventManager>();
         eventManager.ExecuteEvent += ExecutingEvent;
         eventManager.QueueEmpty += CompletedEvent;
+
+        // TODO: get your socket handler (e.g., FindSocketConnectionByLabel)
 
         // create the pose event wait timer (do not start it) and
         //  and timer callback
@@ -89,7 +93,7 @@ public class ScenarioController : MonoBehaviour
         {
             // save the "after wait" image
             imageCapture.SaveRGB("RGB3.png");   // TODO: create unique filename
-            // TODO: send "after wait" information to the RL agent here
+            // TODO: send "after wait" information to the RL agent here via the socket handler
 
             // reset flag
             savePostEventImage = false;
@@ -256,7 +260,7 @@ public class ScenarioController : MonoBehaviour
         {
             // save the "before event" image
             imageCapture.SaveRGB("RGB1.png");   // TODO: create unique filename
-            // TODO: send "before wait" information to the RL agent here
+            // TODO: send "before wait" information to the RL agent here via the socket handler
         }
     }
 
@@ -269,7 +273,7 @@ public class ScenarioController : MonoBehaviour
 
         // save the "after event" image
         imageCapture.SaveRGB("RGB2.png");   // TODO: create unique filename
-        // TODO: send "after event" information to the RL agent here
+        // TODO: send "after event" information to the RL agent here via the socket handler
     }
 
     void PostEventWaitComplete(object sender, ElapsedEventArgs e)
