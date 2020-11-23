@@ -89,6 +89,7 @@ public class ScenarioController : MonoBehaviour
         {
             // save the "after wait" image
             imageCapture.SaveRGB("RGB3.png");   // TODO: create unique filename
+            // TODO: send "after wait" information to the RL agent here
 
             // reset flag
             savePostEventImage = false;
@@ -255,6 +256,7 @@ public class ScenarioController : MonoBehaviour
         {
             // save the "before event" image
             imageCapture.SaveRGB("RGB1.png");   // TODO: create unique filename
+            // TODO: send "before wait" information to the RL agent here
         }
     }
 
@@ -267,6 +269,7 @@ public class ScenarioController : MonoBehaviour
 
         // save the "after event" image
         imageCapture.SaveRGB("RGB2.png");   // TODO: create unique filename
+        // TODO: send "after event" information to the RL agent here
     }
 
     void PostEventWaitComplete(object sender, ElapsedEventArgs e)
