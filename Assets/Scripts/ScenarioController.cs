@@ -50,6 +50,17 @@ public class ScenarioController : MonoBehaviour
         { "Cylinder","cylinder" }
     };
 
+    public event EventHandler ObjectsInited;
+
+    public void OnObjectsInited(object sender, EventArgs e)
+    {
+        if (ObjectsInited != null)
+        {
+            ObjectsInited(this, e);
+        }
+    }
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -90,6 +101,7 @@ public class ScenarioController : MonoBehaviour
         {
             PlaceRandomly(surface);
             objectsInited = true;
+            OnObjectsInited(this, null);
         }
 
         if (savePostEventImage)
