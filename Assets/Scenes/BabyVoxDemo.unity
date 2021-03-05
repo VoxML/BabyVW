@@ -484,9 +484,8 @@ MonoBehaviour:
   objectTypes: {fileID: 784435535}
   interactableObjectTypes:
   - {fileID: 1242741016}
-  - {fileID: 0}
-  numTotalObjs: 30
-  numInteractableObjs: 10
+  numTotalObjs: 3
+  numInteractableObjs: 3
   attemptUniqueAttributes: 1
   postEventWaitTimerTime: 2000
 --- !u!4 &130105525
@@ -875,6 +874,7 @@ GameObject:
   m_Component:
   - component: {fileID: 355840412}
   - component: {fileID: 355840414}
+  - component: {fileID: 355840415}
   - component: {fileID: 355840413}
   m_Layer: 0
   m_Name: ExplorationArchitecture
@@ -908,13 +908,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 355840411}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8cbb18e3612a40f882f758ffba6646f, type: 3}
+  m_Script: {fileID: 11500000, guid: 3a5c9d521e5ef4759a8246a07d52221e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
+  DecisionPeriod: 20
+  TakeActionsBetweenDecisions: 1
 --- !u!114 &355840414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -928,17 +926,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 8
+    VectorObservationSize: 1
     NumStackedVectorObservations: 1
-    VectorActionSize: 01000000
+    VectorActionSize: 02000000
     VectorActionDescriptions: []
-    VectorActionSpaceType: 0
+    VectorActionSpaceType: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: My Behavior
+  m_BehaviorName: Stacking
   TeamId: 0
   m_UseChildSensors: 1
+--- !u!114 &355840415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 355840411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8cbb18e3612a40f882f758ffba6646f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 1000
+  themeObj: {fileID: 0}
+  destObj: {fileID: 0}
+  observationSize: 1
+  scenarioController: {fileID: 130105524}
 --- !u!1 &374420754
 GameObject:
   m_ObjectHideFlags: 0
@@ -2221,14 +2239,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1071626172}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.25, z: 0}
+  m_LocalRotation: {x: 0.6427876, y: 0, z: 0, w: 0.7660445}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_Children:
   - {fileID: 534669905}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 80, y: 0, z: 0}
 --- !u!1 &1113776912
 GameObject:
   m_ObjectHideFlags: 0

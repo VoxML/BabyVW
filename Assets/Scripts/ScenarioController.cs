@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Timers;
 
 using VoxSimPlatform.Core;
 using VoxSimPlatform.Global;
+using VoxSimPlatform.SpatialReasoning;
 using VoxSimPlatform.Vox;
 
 public class ScenarioController : MonoBehaviour
@@ -28,6 +30,8 @@ public class ScenarioController : MonoBehaviour
 
     EventManager eventManager;
     VoxemeInit voxemeInit;
+    ObjectSelector objSelector;
+    RelationTracker relationTracker;
 
     ImageCapture imageCapture;
 
@@ -60,6 +64,25 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
+    public event EventHandler EventExecuting;
+
+    public void OnEventExecuting(object sender, EventArgs e)
+    {
+        if (EventExecuting != null)
+        {
+            EventExecuting(this, e);
+        }
+    }
+
+    public event EventHandler PostEventWaitCompleted;
+
+    public void OnPostEventWaitCompleted(object sender, EventArgs e)
+    {
+        if (PostEventWaitCompleted != null)
+        {
+            PostEventWaitCompleted(this, e);
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -69,6 +92,8 @@ public class ScenarioController : MonoBehaviour
         eventManager = GameObject.Find("BehaviorController").GetComponent<EventManager>();
         eventManager.ExecuteEvent += ExecutingEvent;
         eventManager.QueueEmpty += CompletedEvent;
+
+        relationTracker = GameObject.Find("BehaviorController").GetComponent<RelationTracker>();
 
         // TODO: get your socket handler (e.g., FindSocketConnectionByLabel)
 
@@ -90,6 +115,7 @@ public class ScenarioController : MonoBehaviour
             instantiatedAttributes[objType] = new List<string>();
         }
 
+        objSelector = GameObject.Find("VoxWorld").GetComponent<ObjectSelector>();
         voxemeInit = GameObject.Find("VoxWorld").GetComponent<VoxemeInit>();
         objectsInited = false;
     }
@@ -97,26 +123,29 @@ public class ScenarioController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!objectsInited)
-        {
-            PlaceRandomly(surface);
-            objectsInited = true;
-            OnObjectsInited(this, null);
-        }
-
         if (savePostEventImage)
         {
             // save the "after wait" image
             imageCapture.SaveRGB("RGB3.png");   // TODO: create unique filename
-            // TODO: send "after wait" information to the RL agent here via the socket handler
 
             // reset flag
             savePostEventImage = false;
         }
     }
 
-    void PlaceRandomly(GameObject surface)
+    public void PlaceRandomly(GameObject surface)
     {
+        List<GameObject> instantiatedVoxemeObjs = interactableObjects.GetComponentsInChildren<Voxeme>().Select(v => v.gameObject).ToList();
+        for (int i = 0; i < instantiatedVoxemeObjs.Count; i++)
+        {
+            objSelector.allVoxemes.Remove(instantiatedVoxemeObjs[i].GetComponent<Voxeme>());
+            instantiatedAttributes[instantiatedVoxemeObjs[i].transform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]].Clear();
+            Destroy(interactableObjects.GetComponentsInChildren<Voxeme>().Select(v => v.gameObject).ToList()[i]);
+            
+        }
+
+        relationTracker.relations.Clear();
+
         // place interactable objects
         // make sure some object types are set as interactable
         if (interactableObjectTypes.Count > 0)
@@ -147,7 +176,7 @@ public class ScenarioController : MonoBehaviour
                     coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
                 newObj.AddComponent<Voxeme>();
                 newObj.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
-                newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
+                //newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
 
                 // add material
                 int materialIndex = 0;
@@ -195,6 +224,9 @@ public class ScenarioController : MonoBehaviour
                 newObj.transform.parent = interactableObjects.transform;
                 voxemeInit.InitializeVoxemes();
             }
+
+            objectsInited = true;
+            OnObjectsInited(this, null);
         }
 
         // place non-interactable objects
@@ -268,6 +300,12 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
+    public void SendToEventManager(string eventStr)
+    {
+        eventManager.InsertEvent("", 0);
+        eventManager.InsertEvent(eventStr, 1);
+    }
+
     void ExecutingEvent(object sender, EventArgs e)
     {
         Debug.LogFormat("ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
@@ -275,8 +313,9 @@ public class ScenarioController : MonoBehaviour
         {
             // save the "before event" image
             imageCapture.SaveRGB("RGB1.png");   // TODO: create unique filename
-            // TODO: send "before wait" information to the RL agent here via the socket handler
         }
+
+        OnEventExecuting(this, null);
     }
 
     void CompletedEvent(object sender, EventArgs e)
@@ -288,18 +327,22 @@ public class ScenarioController : MonoBehaviour
 
         // save the "after event" image
         imageCapture.SaveRGB("RGB2.png");   // TODO: create unique filename
-        // TODO: send "after event" information to the RL agent here via the socket handler
     }
 
     void PostEventWaitComplete(object sender, ElapsedEventArgs e)
     {
-        Debug.LogFormat("PostEventWaitComplete");
-
         // stop and reset the wait timer
         postEventWaitTimer.Interval = postEventWaitTimerTime;
         postEventWaitTimer.Enabled = false;
 
         // set flag
         savePostEventImage = true;
+
+        OnPostEventWaitCompleted(this, null);
+    }
+
+    public bool IsValidAction(Vector2 action)
+    {
+        return !action.Equals(new Vector2(-Mathf.Infinity, -Mathf.Infinity));
     }
 }
