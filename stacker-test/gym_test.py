@@ -25,9 +25,12 @@ def main():
                 
             obs, reward, done, info = env.step(action)
             
+            obs = np.array([[obs]])
             if valid_obs(obs):
+                print(reward)
+                print(reward)
                 print("Observation: %s, Reward: %s, Done = %s\n" %
-                    (obs[0][0] if obs is not None else obs,reward[0],done))
+                    (obs[0][0] if obs is not None else obs,np.array([reward])[0],done))
             t += 1
             
         obs = env.reset()
