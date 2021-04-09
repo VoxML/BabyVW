@@ -11,6 +11,7 @@ using VoxSimPlatform.Vox;
 
 public class ScenarioController : MonoBehaviour
 {
+    public bool usingRLClient;
     public float nearClipRadius;
     public float interactableRadius;
     public GameObject interactableObjects;
@@ -130,6 +131,17 @@ public class ScenarioController : MonoBehaviour
 
             // reset flag
             savePostEventImage = false;
+        }
+
+        if (!usingRLClient)
+        {
+            if (!objectsInited)
+            { 
+                if (surface != null)
+                {
+                    PlaceRandomly(surface);
+                }
+            }
         }
     }
 

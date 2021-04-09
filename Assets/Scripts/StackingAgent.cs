@@ -41,6 +41,7 @@ public class StackingAgent : Agent
 
         if (scenarioController != null)
         {
+            scenarioController.usingRLClient = true;
             scenarioController.ObjectsInited += ObjectsPlaced;
             scenarioController.EventExecuting += ExecutingEvent;
             scenarioController.PostEventWaitCompleted += ResultObserved;
@@ -158,7 +159,7 @@ public class StackingAgent : Agent
     int ConstructObservation()
     {
         List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
-        int obs = (int)Mathf.Floor(sortedByHeight.First().transform.position.y * 10);
+        int obs = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
 
         return obs;
     }
@@ -166,7 +167,7 @@ public class StackingAgent : Agent
     public override void OnEpisodeBegin()
     {
         Debug.Log("Beginning episode");
-        observation = 0f;
+        observation = 1;
 
         scenarioController.PlaceRandomly(scenarioController.surface);
         PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);

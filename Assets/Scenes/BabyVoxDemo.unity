@@ -476,6 +476,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cf3ff61b798848ba8841f2e03e06a69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  usingRLClient: 0
   nearClipRadius: 0.2
   interactableRadius: 0.5
   interactableObjects: {fileID: 1804393135}
@@ -484,8 +485,8 @@ MonoBehaviour:
   objectTypes: {fileID: 784435535}
   interactableObjectTypes:
   - {fileID: 1242741016}
-  numTotalObjs: 3
-  numInteractableObjs: 3
+  numTotalObjs: 2
+  numInteractableObjs: 2
   attemptUniqueAttributes: 1
   postEventWaitTimerTime: 2000
 --- !u!4 &130105525
@@ -944,7 +945,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 355840411}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8cbb18e3612a40f882f758ffba6646f, type: 3}
   m_Name: 
