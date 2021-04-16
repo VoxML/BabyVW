@@ -3,6 +3,7 @@ import numpy as np
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="-1" #comment this line if you want to use cuda
 import pickle
+from tensorflow.keras import initializers
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Dense, Activation, Flatten, Input, Concatenate
 from tensorflow.keras.optimizers import Adam
@@ -37,7 +38,7 @@ def main():
     # Actor
     actor = Sequential()
     actor.add(Input(shape=(1,)))
-    actor.add(Dense(400))
+    actor.add(Dense(400, kernel_initializer='random_normal', bias_initializer='zeros'))
     actor.add(Activation('relu'))
     actor.add(Dense(300))
     actor.add(Activation('relu'))

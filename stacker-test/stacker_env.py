@@ -23,8 +23,8 @@ class StackerEnv(gym.Env):
         # define action and observation space
         # action: where on the surface of the target block do I put my object?
         # observation: how tall is the tallest thing in the world?
-        self.action_space = spaces.Box(np.array([-1,-1]),
-            np.array([1,1]))
+        self.action_space = spaces.Box(np.array([-100,-100]),
+            np.array([100,100]))
         self.observation_space = spaces.Discrete(3)
         
         self.last_action = np.array([-float('inf'),-float('inf')])
@@ -32,6 +32,7 @@ class StackerEnv(gym.Env):
     def step(self, action):
         if not np.allclose(action,self.last_action):
             print("action:",action)
+        #self._env.set_actions(self.behavior_name, ActionTuple(continuous=np.array([.55,.55]).reshape((1,-1))))
         self._env.set_actions(self.behavior_name, ActionTuple(continuous=action.reshape((1,-1))))
         self._env.step()
         step_info, terminal_info = self._env.get_steps(self.behavior_name)
