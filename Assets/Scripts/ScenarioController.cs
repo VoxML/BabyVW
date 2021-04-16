@@ -182,6 +182,8 @@ public class ScenarioController : MonoBehaviour
                 } while (Vector3.Magnitude(coord - floorPosition) > interactableRadius
                     || Vector3.Magnitude(coord - floorPosition) < nearClipRadius);
 
+                //coord = new Vector3(i / 2f, 0, 0);
+
                 GameObject newObj = Instantiate(t.gameObject);
                 newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}",i));
                 newObj.transform.position = new Vector3(coord.x,
@@ -311,6 +313,12 @@ public class ScenarioController : MonoBehaviour
             voxemeInit.InitializeVoxemes();
         }
     }
+
+    public void ClearEventManager()
+    {
+        eventManager.ClearEvents();
+    }
+
 
     public void SendToEventManager(string eventStr)
     {

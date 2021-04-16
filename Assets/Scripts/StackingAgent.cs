@@ -59,7 +59,7 @@ public class StackingAgent : Agent
         if (constructObservation)
         {
             observation = ConstructObservation();
-            Debug.LogFormat("Observation = {0}; Reward = {1}", observation, observation - lastObservation);
+            Debug.LogFormat("StackingAgent.FixedUpdate: Observation = {0}; Reward = {1}", observation, observation - lastObservation);
             AddReward((observation - lastObservation) > 0 ? (observation - lastObservation) : (observation - lastObservation)-1);
 
             if (observation - lastObservation != 0)
@@ -70,7 +70,7 @@ public class StackingAgent : Agent
                 destObj = sortedByHeight.First().gameObject;
             }
 
-            if (observation == interactableObjs.Count-1)
+            if (observation == interactableObjs.Count)
             {
                 endEpisode = true;
             }
@@ -101,8 +101,6 @@ public class StackingAgent : Agent
 
     public void ObjectsPlaced(object sender, EventArgs e)
     {
-        Debug.Log("Objects placed");
-
         if (!objectsPlaced)
         {
             objectsPlaced = true;
@@ -111,11 +109,15 @@ public class StackingAgent : Agent
         interactableObjs = scenarioController.interactableObjects.
                 GetComponentsInChildren<Voxeme>().Where(v => v.isActiveAndEnabled).Select(v => v.transform).ToList();
 
+        Debug.LogFormat("StackingAgent.ObjectsPlaced: Objects placed: [{0}]",
+            string.Join(",\n\t",
+                interactableObjs.Select(t => string.Format("{{{0}:{1}}}", t.name, GlobalHelper.VectorToParsable(t.position))).ToArray()));
+
         destObj = interactableObjs[0].gameObject;
 
         if (destObj != null)
         {
-            Debug.LogFormat("Setting destination object: {0}", destObj.name);
+            Debug.LogFormat("StackingAgent.ObjectsPlaced: Setting destination object: {0}", destObj.name);
         }
     }
 
@@ -158,7 +160,11 @@ public class StackingAgent : Agent
 
     int ConstructObservation()
     {
+        // sort objects by height
         List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
+
+        // take the topmost object and round its y-coord up to nearest int
+        //  multiply by 10 (blocks are .1 x .1 x .1)
         int obs = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
 
         return obs;
@@ -166,7 +172,15 @@ public class StackingAgent : Agent
 
     public override void OnEpisodeBegin()
     {
-        Debug.Log("Beginning episode");
+        // clear the event manager in case any actions have been
+        //  received from the RL client while we're in the middle
+        //  of a reset
+        // clear the executingEvent flag so the next action received
+        //  will actually be processed
+        scenarioController.ClearEventManager();
+        executingEvent = false;
+
+        Debug.Log("StackingAgent.OnEpisodeBegin: Beginning episode");
         observation = 1;
 
         scenarioController.PlaceRandomly(scenarioController.surface);
@@ -182,7 +196,8 @@ public class StackingAgent : Agent
             if (!executingEvent)
             {
                 sensor.AddObservation(observation);
-                Debug.LogFormat("Collecting {0} observation(s)", sensor.ObservationSize());
+                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s)",
+                    sensor.ObservationSize());
             }
             else
             {
@@ -193,7 +208,9 @@ public class StackingAgent : Agent
         }
         else
         {
-            sensor.AddObservation(-1);
+            // if the episode has terminated, return the last observation
+            //  (i.e., the observation at the final state)
+            sensor.AddObservation(lastObservation);
         }
     }
 
@@ -216,7 +233,7 @@ public class StackingAgent : Agent
 
                     vectorAction.CopyTo(lastAction, 0);
 
-                    Debug.LogFormat("Action received: {0}", string.Format("[{0}]", string.Join(",", vectorAction)));
+                    Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}", string.Format("[{0}]", string.Join(",", vectorAction)));
 
                     if (targetOnSurface == Vector2.zero)
                     {
@@ -231,11 +248,27 @@ public class StackingAgent : Agent
                         destBounds.center.z + (destBounds.size.z * targetOnSurface.y));
 
                     string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
-                    Debug.LogFormat(eventStr);
+                    Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
                     scenarioController.SendToEventManager(eventStr);
 
                     waitingForAction = false;
                 }
+                else
+                {
+                    Debug.LogFormat("StackingAgent.OnActionReceived: Invalid action");
+                }
+            }
+        }
+        else
+        {
+            if (!waitingForAction)
+            {
+                Debug.LogFormat("StackingAgent.OnActionReceived: Not waiting for action");
+            }
+
+            if (executingEvent)
+            {
+                Debug.LogFormat("StackingAgent.OnActionReceived: Currently executing event");
             }
         }
     }
