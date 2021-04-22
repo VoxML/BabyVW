@@ -9,7 +9,8 @@ class StackerEnv(gym.Env):
     def __init__(self,
         environment_filename=None):
         self._env = UnityEnvironment(environment_filename,0)
-        #self.seed()
+        self.seed(42)
+        self.resetting = False
         self.reset()
         
         # get behavior name from Unity
@@ -23,13 +24,15 @@ class StackerEnv(gym.Env):
         # define action and observation space
         # action: where on the surface of the target block do I put my object?
         # observation: how tall is the tallest thing in the world?
-        self.action_space = spaces.Box(np.array([-100,-100]),
-            np.array([100,100]))
+        self.action_space = spaces.Box(np.array([1,1]),
+            np.array([1,1]))
         self.observation_space = spaces.Discrete(3)
         
         self.last_action = np.array([-float('inf'),-float('inf')])
 
     def step(self, action):
+        if self.resetting:
+            return
         if not np.allclose(action,self.last_action):
             print("action:",action)
         #self._env.set_actions(self.behavior_name, ActionTuple(continuous=np.array([.55,.55]).reshape((1,-1))))
@@ -46,24 +49,28 @@ class StackerEnv(gym.Env):
         if step_info.reward.shape[0] > 0:
             reward = step_info.reward[0]
         else:
-            reward = step_info.reward
+            reward = 0
         if not np.allclose(action,self.last_action):
             print("reward:",reward)
         done = (len(terminal_info) != 0)
         if done:
             print("Terminated\n\tObservation: %s\tReward: %s\tInterrupted = %s" % (terminal_info.obs[0] if terminal_info.obs is not None else terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
-            #obs = terminal_info.obs
+            obs = terminal_info.obs[0][0][0]
             reward = terminal_info.reward[0]
+            self.last_action = np.array([-float('inf'),-float('inf')])
+        else:
+            self.last_action = action
         info = {}
-        self.last_action = action
         return obs, reward, done, info
 
     def reset(self):
         print("Resetting")
+        self.resetting = True
         self.seed()
         obs = self._env.reset()
         if obs is None:
             obs = 0
+        self.resetting = False
         return obs
 
     def render(self, mode='rgb_array'):
