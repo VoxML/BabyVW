@@ -53,7 +53,7 @@ public class ImageCapture : MonoBehaviour
         RenderTexture.active = rt;
         screenShot.ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
         Camera.main.targetTexture = null;
-        RenderTexture.active = null; // JC: added to avoid errors
+        RenderTexture.active = null;
         Destroy(rt);
         byte[] bytes = screenShot.EncodeToPNG();
         System.IO.File.WriteAllBytes(filename, bytes);
