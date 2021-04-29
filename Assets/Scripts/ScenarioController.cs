@@ -26,6 +26,7 @@ public class ScenarioController : MonoBehaviour
     // editable field: how long do we wait after an event is completed
     //  to assess the "post-event" consequences (e.g., did our structure fall?)
     public int postEventWaitTimerTime;
+    public float timeScale;
 
     Timer postEventWaitTimer;
 
@@ -45,9 +46,7 @@ public class ScenarioController : MonoBehaviour
     bool objectsInited;
 
     bool savePostEventImage = false;
-
-    // TODO: declare your socket handler here
-
+    
     Dictionary<string, string> objectToVoxemePredMap = new Dictionary<string, string>()
     {
         { "Cube","block" },
@@ -95,12 +94,10 @@ public class ScenarioController : MonoBehaviour
         eventManager.QueueEmpty += CompletedEvent;
 
         relationTracker = GameObject.Find("BehaviorController").GetComponent<RelationTracker>();
-
-        // TODO: get your socket handler (e.g., FindSocketConnectionByLabel)
-
+        
         // create the pose event wait timer (do not start it) and
         //  and timer callback
-        postEventWaitTimer = new Timer(postEventWaitTimerTime);
+        postEventWaitTimer = new Timer(postEventWaitTimerTime/timeScale);
         postEventWaitTimer.Enabled = false;
         postEventWaitTimer.Elapsed += PostEventWaitComplete;
 

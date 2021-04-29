@@ -489,6 +489,7 @@ MonoBehaviour:
   numInteractableObjs: 2
   attemptUniqueAttributes: 1
   postEventWaitTimerTime: 2000
+  timeScale: 2
 --- !u!4 &130105525
 Transform:
   m_ObjectHideFlags: 0

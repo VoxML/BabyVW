@@ -16,6 +16,7 @@ public class StackingAgent : Agent
 
     public ScenarioController scenarioController;
 
+    List<Transform> usedDestObjs = new List<Transform>();
     List<Transform> interactableObjs;
 
     VectorSensor sensor;
@@ -157,6 +158,8 @@ public class StackingAgent : Agent
 
     void FixedUpdate()
     {
+        Time.timeScale = scenarioController.timeScale;
+
         running = objectsPlaced && episodeStarted;
 
         if (constructObservation)
@@ -170,8 +173,14 @@ public class StackingAgent : Agent
                 // figure out which is the new destination object
                 List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
 
-                OnDestObjChanged(destObj, sortedByHeight.First().gameObject);
-                destObj = sortedByHeight.First().gameObject;
+                GameObject newDest = sortedByHeight.First().gameObject;
+                OnDestObjChanged(destObj, newDest);
+                destObj = newDest;
+
+                if (observation - lastObservation < 0)
+                {
+                    usedDestObjs = usedDestObjs.Take(usedDestObjs.Count + (int)(observation - lastObservation)).ToList();
+                } 
             }
 
             if (observation == interactableObjs.Count)
@@ -211,13 +220,15 @@ public class StackingAgent : Agent
         }
 
         interactableObjs = scenarioController.interactableObjects.
-                GetComponentsInChildren<Voxeme>().Where(v => v.isActiveAndEnabled).Select(v => v.transform).ToList();
+            GetComponentsInChildren<Voxeme>().Where(v => v.isActiveAndEnabled).Select(v => v.transform).ToList();
+        usedDestObjs.Clear();
 
         Debug.LogFormat("StackingAgent.ObjectsPlaced: Objects placed: [{0}]",
             string.Join(",\n\t",
                 interactableObjs.Select(t => string.Format("{{{0}:{1}}}", t.name, GlobalHelper.VectorToParsable(t.position))).ToArray()));
 
-        destObj = interactableObjs[0].gameObject;
+        destObj = interactableObjs.OrderByDescending(t => t.position.y).ToList().First().gameObject;
+        usedDestObjs.Add(destObj.transform);
 
         if (destObj != null)
         {
@@ -247,17 +258,8 @@ public class StackingAgent : Agent
     {
         GameObject theme = null;
 
-        if (themeObj == null)
-        {
-            theme = interactableObjs[1].gameObject;
-        }
-        else
-        {
-            if (interactableObjs.IndexOf(themeObj.transform) + 1 < interactableObjs.Count)
-            {
-                theme = interactableObjs[interactableObjs.IndexOf(themeObj.transform) + 1].gameObject;
-            }
-        }
+        theme = interactableObjs.Except(usedDestObjs)
+            .OrderBy(t => t.position.y).ToList().First().gameObject;
 
         return theme;
     }
@@ -326,7 +328,7 @@ public class StackingAgent : Agent
             return;
         }
 
-        if (waitingForAction && !executingEvent)
+        if (waitingForAction && !executingEvent && !resolvePhysics && !constructObservation)
         {
             Vector2 targetOnSurface = new Vector2(vectorAction[0], vectorAction[1]);
 
@@ -334,9 +336,10 @@ public class StackingAgent : Agent
             {
                 if (!vectorAction.SequenceEqual(lastAction))
                 {
-                    OnThemeObjChanged(themeObj, SelectThemeObject());
+                    GameObject newTheme = SelectThemeObject();
                     //when this happens the physics resolution hasn't finished yet so the new position of the destination object hasn't updated
-                    themeObj = SelectThemeObject();
+                    OnThemeObjChanged(themeObj, newTheme);
+                    themeObj = newTheme;
 
                     if (themeObj == null)
                     {
