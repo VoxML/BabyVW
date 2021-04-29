@@ -69,7 +69,7 @@ class StackerEnv(gym.Env):
         self.seed()
         obs = self._env.reset()
         if obs is None:
-            obs = 0
+            obs = 1
         self.resetting = False
         return obs
 
