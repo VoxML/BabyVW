@@ -24,9 +24,9 @@ class StackerEnv(gym.Env):
         # define action and observation space
         # action: where on the surface of the target block do I put my object?
         # observation: how tall is the tallest thing in the world?
-        self.action_space = spaces.Box(np.array([1,1]),
+        self.action_space = spaces.Box(np.array([-1,-1]),
             np.array([1,1]))
-        self.observation_space = spaces.Discrete(3)
+        self.observation_space = spaces.Discrete(4)
         
         self.last_action = np.array([-float('inf'),-float('inf')])
 
@@ -39,20 +39,26 @@ class StackerEnv(gym.Env):
         self._env.set_actions(self.behavior_name, ActionTuple(continuous=action.reshape((1,-1))))
         self._env.step()
         step_info, terminal_info = self._env.get_steps(self.behavior_name)
+
         obs = step_info.obs
+
         if step_info.obs[0].shape[0] > 0:
             obs = step_info.obs[0][0][0]
         else:
             obs = 0
         if not np.allclose(action,self.last_action):
             print("observation:",obs)
+
         if step_info.reward.shape[0] > 0:
             reward = step_info.reward[0]
+            print("reward in the step_info", reward)
         else:
             reward = 0
         if not np.allclose(action,self.last_action):
             print("reward:",reward)
+
         done = (len(terminal_info) != 0)
+
         if done:
             print("Terminated\n\tObservation: %s\tReward: %s\tInterrupted = %s" % (terminal_info.obs[0] if terminal_info.obs is not None else terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
             obs = terminal_info.obs[0][0][0]
