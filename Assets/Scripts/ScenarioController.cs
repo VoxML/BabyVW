@@ -21,6 +21,7 @@ public class ScenarioController : MonoBehaviour
     public List<Transform> interactableObjectTypes;
     public int numTotalObjs;
     public int numInteractableObjs;
+    public bool instantiateObjectTypesInOrder;
     public bool attemptUniqueAttributes;
 
     // editable field: how long do we wait after an event is completed
@@ -161,14 +162,23 @@ public class ScenarioController : MonoBehaviour
         {
             for (int i = 0; i < numInteractableObjs; i++)
             {
-                // choose a random object type (as long as it's an interactable object type)
                 Transform t;
-                do
+
+                if (instantiateObjectTypesInOrder)
                 {
-                    t = objectTypes.GetChild(RandomHelper.RandomInt(0, objectTypes.childCount - 1,
-                        (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive)));
-                } while (!interactableObjectTypes.Contains(t));
-                Debug.Log(string.Format("Creating new {0}", t.name));
+                    t = interactableObjectTypes[i % interactableObjectTypes.Count];
+                    Debug.Log(string.Format("Creating new {0}", t.name));
+                }
+                else
+                {
+                    // choose a random object type (as long as it's an interactable object type)
+                    do
+                    {
+                        t = objectTypes.GetChild(RandomHelper.RandomInt(0, objectTypes.childCount - 1,
+                            (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive)));
+                    } while (!interactableObjectTypes.Contains(t));
+                    Debug.Log(string.Format("Creating new {0}", t.name));
+                }
 
                 // find a clear coordinate on the play surface within the interactable radius
                 //  (and beyond the near clip pane)

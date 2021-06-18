@@ -487,6 +487,7 @@ MonoBehaviour:
   - {fileID: 1242741016}
   numTotalObjs: 2
   numInteractableObjs: 2
+  instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
   postEventWaitTimerTime: 2000
   timeScale: 2
