@@ -6,7 +6,6 @@ from stacker_env import StackerEnv
 from test_policy import TestPolicy
 
 
-
 env = StackerEnv()
 
 
@@ -20,24 +19,37 @@ print("n_actions", n_actions)
 action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
 
-model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./ddpg_tensorboard/")
+#model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./ddpg_tensorboard/")
 
 
-#model = TD3(TestPolicy, env, target_policy_noise = 0.002, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./ddpg_tensorboard/")
-model.learn(total_timesteps=10000)
+model = TD3(TestPolicy, env, target_policy_noise = 0.002, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./ddpg_tensorboard/")
+model.learn(total_timesteps=500)
 
-model.save("ddpg_test")
-env = model.get_env()
+print("learning done")
 
-del model
 
-model = DDPG.load("ddpg_test")
+log_dir = "/Users/sadaf/PycharmProjects/tmp/"
+model.save(log_dir + "ddpg_test")
+
+print("saving is done")
+
+
+model = TD3.load(log_dir + "ddpg_test")
 
 obs = env.reset()
+
 while True:
+    print("Testing")
     action, _states = model.predict(obs)
     obs, rewards, dones, info = env.step(action)
-    #env.render()
+    print(dones)
+
+    # Line below is just added to debug. the IF below producing object not stacking. By removing it, the error in stacker_env.py appears which is realted to
+    # done = True
+
+    #if dones:
+    #    obs = env.reset()
+
 
 
 
