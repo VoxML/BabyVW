@@ -56,9 +56,9 @@ while True:
     if dones:
         env.reset()
 
-    # Line below is just added to debug. the IF below producing object not stacking. By removing it, the error in stacker_env.py appears which is realted to
-    # done = True
+    # following is just a workaround for now instead of the above lines
 
     #if dones:
-    #    obs = env.reset()
+    #    break
+
 
