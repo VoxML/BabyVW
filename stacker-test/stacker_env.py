@@ -37,6 +37,7 @@ class StackerEnv(gym.Env):
             print("action:",action)
         #self._env.set_actions(self.behavior_name, ActionTuple(continuous=np.array([.55,.55]).reshape((1,-1))))
         self._env.set_actions(self.behavior_name, ActionTuple(continuous=action.reshape((1,-1))))
+        print("action shape:", action.reshape((1, -1)).shape)
         self._env.step()
         step_info, terminal_info = self._env.get_steps(self.behavior_name)
 
@@ -79,8 +80,8 @@ class StackerEnv(gym.Env):
         self.resetting = False
         return obs
 
-    def render(self, mode='rgb_array'):
-        return self.visual_obs
+    #def render(self, mode='rgb_array'):
+        #return self.visual_obs
 
     def close(self):
         self._env.close()

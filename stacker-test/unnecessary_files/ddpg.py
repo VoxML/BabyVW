@@ -35,14 +35,14 @@ class Agent():
         self.seed = random.seed(random_seed)
 
         # Actor Network (w/ Target Network)
-        self.actor_local = Actor(state_size, action_size, random_seed).to(device)
+        self.actor = Actor(state_size, action_size, random_seed).to(device)
         self.actor_target = Actor(state_size, action_size, random_seed).to(device)
-        self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=lr_actor)
+        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=lr_actor)
 
         # Critic Network (w/ Target Network)
-        self.critic_local = Critic(state_size, action_size, random_seed).to(device)
+        self.critic = Critic(state_size, action_size, random_seed).to(device)
         self.critic_target = Critic(state_size, action_size, random_seed).to(device)
-        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=lr_critic)
+        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=lr_critic)
 
         # Noise process
         self.noise = OUNoise(action_size, random_seed)
@@ -62,17 +62,27 @@ class Agent():
             experiences = self.memory.sample()
             self.policy_update(experiences, gamma)
 
-    def act(self, state, add_noise = True):
+    def get_action(self, state, add_noise = True):
 
-        #Returning an action for a given state for each policy
+        # Returning an action for a given state for each policy
 
         state = torch.tensor(state).float().unsqueeze(0)
-        self.actor_local.eval()
-        with torch.no_grad():
-            action = self.actor_local(state).cpu().data.numpy()
-        self.actor_local.train()
+
+        #action = self.actor_local.forward(state)
+        #action = action.detach().numpy()
+        #print(f"action in act method in ddpg after detaching: {action}")
+
+        action = self.actor(state)
+        action = action.detach().numpy()
+
+        #self.actor_local.train()
+        #self.actor_local.eval()
+        #with torch.no_grad():
+        #    action = self.actor_local(state).cpu().data.numpy()
+        #    print(f"action in act method in ddpg: {action}")
         if add_noise:
             action += self.noise.sample()
+            print("action in get_action", action)
         return np.clip(action, -1, 1)
 
     def reset(self):
@@ -95,7 +105,7 @@ class Agent():
         Q_targets = rewards + (gamma * Q_targets_next)
 
         # Compute critic loss
-        Q_expected = self.critic_local(states, actions)
+        Q_expected = self.critic(states, actions)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
 
         # Minimize the loss
@@ -105,8 +115,8 @@ class Agent():
 
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
-        actions_pred = self.actor_local(states)
-        actor_loss = -self.critic_local(states, actions_pred).mean()
+        actions_pred = self.actor(states)
+        actor_loss = -self.critic(states, actions_pred).mean()
 
         # Minimize the loss
         self.actor_optimizer.zero_grad()
@@ -114,8 +124,8 @@ class Agent():
         self.actor_optimizer.step()
 
         # ----------------------- update target networks ----------------------- #
-        self.soft_update(self.critic_local, self.critic_target, tau)
-        self.soft_update(self.actor_local, self.actor_target, tau)
+        self.soft_update(self.critic, self.critic_target, tau)
+        self.soft_update(self.actor, self.actor_target, tau)
 
     def soft_update(self, local_model, target_model, tau):
 
@@ -125,12 +135,13 @@ class Agent():
 
 class OUNoise:
 
-    #Ornstein-Uhlenbeck process
+ #Ornstein-Uhlenbeck process
 
-    def __init__(self, size, seed, mu = 0.0, theta = 0.15, sigma = 0.2):
+    def __init__(self, size, seed, mu = 0.0, theta = 0.15, sigma = 0.14):
 
 
         self.mu = mu * np.ones(size)
+        self.action_dim = 2
         self.theta = theta
         self.seed = random.seed(seed)
         self.sigma = sigma
@@ -139,15 +150,19 @@ class OUNoise:
 
     def reset(self):
         self.state = copy.copy(self.mu)
+        print(f"state in reset function:{self.state}")
 
     def sample(self):
 
         #Update internal state and return it as a noise sample
 
         x = self.state
-        dx = self.theta * (self.mu - x) + self.sigma * np.array([random.random() for _ in range(len(x))])
+        print(f"x in sample function: {x}")
+
+        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(self.action_dim)
         self.state = x + dx
         return self.state
+
 
 
 class ReplayBuffer:

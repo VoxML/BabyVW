@@ -1,12 +1,21 @@
 import numpy as np
 from stable_baselines3 import TD3
 from stable_baselines3 import DDPG
+import os
+import matplotlib.pyplot as plt
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stacker_env import StackerEnv
 from test_policy import TestPolicy
+from stable_baselines3.common.monitor import Monitor
+import pandas as pd
+
+
+log_dir = "/Users/sadaf/PycharmProjects/tmp/"
+os.makedirs(log_dir, exist_ok=True)
 
 
 env = StackerEnv()
+env = Monitor(env, log_dir)
 
 
 print("observation_space:", env.observation_space.shape)
@@ -22,13 +31,13 @@ action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n
 #model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./ddpg_tensorboard/")
 
 
-model = TD3(TestPolicy, env, target_policy_noise = 0.002, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./ddpg_tensorboard/")
+model = TD3(TestPolicy, env, target_policy_noise = 0.002, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./two_cubes/")
 model.learn(total_timesteps=500)
+
 
 print("learning done")
 
 
-log_dir = "/Users/sadaf/PycharmProjects/tmp/"
 model.save(log_dir + "ddpg_test")
 
 print("saving is done")
@@ -42,27 +51,14 @@ while True:
     print("Testing")
     action, _states = model.predict(obs)
     obs, rewards, dones, info = env.step(action)
+    print("obs:", obs)
     print(dones)
+    if dones:
+        env.reset()
 
     # Line below is just added to debug. the IF below producing object not stacking. By removing it, the error in stacker_env.py appears which is realted to
     # done = True
 
     #if dones:
     #    obs = env.reset()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
