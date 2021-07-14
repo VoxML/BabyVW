@@ -75,6 +75,16 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
+    public event EventHandler EventCompleted;
+
+    public void OnEventCompleted(object sender, EventArgs e)
+    {
+        if (EventCompleted != null)
+        {
+            EventCompleted(this, e);
+        }
+    }
+
     public event EventHandler PostEventWaitCompleted;
 
     public void OnPostEventWaitCompleted(object sender, EventArgs e)
@@ -347,6 +357,8 @@ public class ScenarioController : MonoBehaviour
 
     void CompletedEvent(object sender, EventArgs e)
     {
+        OnEventCompleted(this, null);
+
         Debug.LogFormat("CompletedEvent: {0}", ((EventManagerArgs)e).EventString);
 
         // start the wait timer

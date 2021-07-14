@@ -1,11 +1,10 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
-
+using UnityEngine;
 using VoxSimPlatform.Global;
 using VoxSimPlatform.Vox;
 
@@ -13,6 +12,13 @@ public class StackingAgent : Agent
 {
     public GameObject themeObj, destObj;
     public int observationSize;
+    public bool useNoisyObservations;
+
+    public int episodeCount;
+
+    public float forceMultiplier;
+
+    public string outFileName;
 
     public ScenarioController scenarioController;
 
@@ -22,6 +28,11 @@ public class StackingAgent : Agent
     VectorSensor sensor;
 
     float[] lastAction;
+
+    Vector3 themeStartRotation;
+
+    float episodeTotalReward;
+    int episodeNumTrials;
 
     bool _objectsPlaced = false;
     public bool objectsPlaced
@@ -135,7 +146,7 @@ public class StackingAgent : Agent
         }
     }
 
-    float observation, lastObservation;
+    float observation, lastObservation, noisyObservation;
 
     void Start()
     {
@@ -143,11 +154,14 @@ public class StackingAgent : Agent
 
         lastAction = new float[] { -Mathf.Infinity, -Mathf.Infinity };
 
+        episodeCount = 0;
+
         if (scenarioController != null)
         {
             scenarioController.usingRLClient = true;
             scenarioController.ObjectsInited += ObjectsPlaced;
             scenarioController.EventExecuting += ExecutingEvent;
+            scenarioController.EventCompleted += ApplyForce;
             scenarioController.PostEventWaitCompleted += ResultObserved;
         }
         else
@@ -165,8 +179,12 @@ public class StackingAgent : Agent
         if (constructObservation)
         {
             observation = ConstructObservation();
+            noisyObservation = observation + (float)GaussianNoise(0, 0.1f);
             Debug.LogFormat("StackingAgent.FixedUpdate: Observation = {0}; Reward = {1}", observation, observation - lastObservation);
-            AddReward((observation - lastObservation) > 0 ? (observation - lastObservation) : (observation - lastObservation) - 1);
+            float reward = (observation - lastObservation) > 0 ? (observation - lastObservation) : (observation - lastObservation) - 1;
+            AddReward(reward);
+            episodeTotalReward += reward;
+            WriteOutSample(themeObj.transform, destObj.transform, lastAction, reward);
 
             if (observation - lastObservation != 0)
             {
@@ -212,6 +230,35 @@ public class StackingAgent : Agent
         }
     }
 
+    void WriteOutSample(Transform themeTransform, Transform destTransform, float[] action, float reward)
+    {
+        Dictionary<string, int> objNameToIntDict = new Dictionary<string, int>()
+        {
+            { "Cube", 0 },
+            { "Sphere", 1 },
+            { "Cylinder", 2 }
+        };
+
+        float[] arr = new float[] {
+            episodeCount,
+            objNameToIntDict[themeTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
+            objNameToIntDict[destTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
+            themeStartRotation.x * Mathf.Deg2Rad, themeStartRotation.y * Mathf.Deg2Rad, themeStartRotation.z * Mathf.Deg2Rad,
+            action[0], action[1],
+            useNoisyObservations ? noisyObservation : observation,
+            reward,
+            episodeTotalReward,
+            episodeTotalReward/episodeNumTrials
+            };
+        string csv = string.Join(",", arr);
+        Debug.LogFormat("WriteOutSample: {0}",csv);
+
+        using (StreamWriter writer = new StreamWriter(string.Format("{0}.csv", outFileName), true))
+        {
+            writer.WriteLine(csv);
+        }
+    }
+
     public void ObjectsPlaced(object sender, EventArgs e)
     {
         if (!objectsPlaced)
@@ -244,9 +291,103 @@ public class StackingAgent : Agent
         }
     }
 
+    public void ApplyForce(object sender, EventArgs e)
+    {
+        // Fetch the Rigidbody from the GameObject
+        Rigidbody themeRigidbody = themeObj.GetComponentInChildren<Rigidbody>();
+        Vector3 force = Vector3.zero;
+
+        Voxeme themeVox = themeObj.GetComponent<Voxeme>();
+
+        if (themeVox != null)
+        {
+            string[] axes = themeVox.voxml.Type.RotatSym.Split(',');
+
+            if ((axes.Length == 0) || (axes.Length == 3))
+            {
+                force = new Vector3((float)GaussianNoise(0, 1),
+                    0,
+                    (float)GaussianNoise(0, 1)).normalized * forceMultiplier;
+            }
+            else if (axes.Length == 2)
+            {
+                Vector3 dir = Vector3.zero;
+                string axis = axes[RandomHelper.RandomInt(0, 1, (int)RandomHelper.RangeFlags.MaxInclusive)];
+                switch (axis)
+                {
+                    case "X":
+                        dir = themeObj.transform.rotation * Vector3.right;
+                        break;
+
+                    case "Y":
+                        dir = themeObj.transform.rotation * Vector3.up;
+                        break;
+
+                    case "Z":
+                        dir = themeObj.transform.rotation * Vector3.forward;
+                        break;
+
+                    default:
+                        break;
+                }
+
+                Vector3 perp = Vector3.Cross(dir, Vector3.up).normalized;
+
+                if (perp.magnitude < Constants.EPSILON)
+                {
+                    perp = Vector3.forward;
+                }
+
+                force = perp * forceMultiplier;
+            }
+            else if (axes.Length == 1)
+            {
+                Vector3 dir = Vector3.zero;
+                string axis = axes[0];
+                switch (axis)
+                {
+                    case "X":
+                        dir = themeObj.transform.rotation * Vector3.right;
+                        break;
+
+                    case "Y":
+                        dir = themeObj.transform.rotation * Vector3.up;
+                        break;
+
+                    case "Z":
+                        dir = themeObj.transform.rotation * Vector3.forward;
+                        break;
+
+                    default:
+                        break;
+                }
+
+                Vector3 perp = Vector3.Cross(dir, Vector3.up).normalized;
+
+                if (perp.magnitude < Constants.EPSILON)
+                {
+                    perp = Vector3.forward;
+                }
+
+                force = perp * forceMultiplier;
+            }
+        }
+        else
+        {
+            force = new Vector3((float)GaussianNoise(0, 1),
+                0,
+                (float)GaussianNoise(0, 1)).normalized * forceMultiplier;
+        }
+
+        Debug.LogFormat("ApplyForce: Applying force {0} to GameObject {1} (Rigidbody {2})",
+            GlobalHelper.VectorToParsable(force), themeObj.name, themeRigidbody.name);
+
+        themeRigidbody.AddForce(force, ForceMode.Impulse);
+    }
+
     public void ResultObserved(object sender, EventArgs e)
     {
-        if (executingEvent)
+        if (executingEvent) 
         {
             lastObservation = observation;
             resolvePhysics = true;
@@ -260,6 +401,10 @@ public class StackingAgent : Agent
 
         theme = interactableObjs.Except(usedDestObjs)
             .OrderBy(t => t.position.y).ToList().First().gameObject;
+
+        themeStartRotation = new Vector3(theme.transform.eulerAngles.x > 180.0f ? theme.transform.eulerAngles.x - 360.0f : theme.transform.eulerAngles.x,
+            theme.transform.eulerAngles.y > 180.0f ? theme.transform.eulerAngles.y - 360.0f : theme.transform.eulerAngles.y,
+            theme.transform.eulerAngles.z > 180.0f ? theme.transform.eulerAngles.z - 360.0f : theme.transform.eulerAngles.z);
 
         return theme;
     }
@@ -285,10 +430,27 @@ public class StackingAgent : Agent
         //  will actually be processed
         scenarioController.ClearEventManager();
         executingEvent = false;
-        
+
+        if (interactableObjs != null)
+        {
+            List<Rigidbody> allRigidbodies = (from list in interactableObjs.Select(go => go.GetComponentsInChildren<Rigidbody>())
+                                              from item in list select item).ToList();
+            foreach (Rigidbody rb in allRigidbodies)
+            {
+                rb.velocity = Vector3.zero;
+            }
+        }
+
+        episodeCount += 1;
+        episodeNumTrials = 0;
+
         Debug.Log("StackingAgent.OnEpisodeBegin: Beginning episode");
+        episodeTotalReward = 0f;
         observation = 1;
-        sensor.AddObservation(observation);
+        noisyObservation = observation + (float)GaussianNoise(0, 0.1f);
+        sensor.AddObservation(useNoisyObservations ? noisyObservation : observation);
+        Debug.LogFormat("StackingAgent.OnEpisodeBegin: Collecting {0} observation(s) - [{1}]",
+            sensor.ObservationSize(), useNoisyObservations ? noisyObservation : observation);
 
         scenarioController.PlaceRandomly(scenarioController.surface);
         PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
@@ -302,13 +464,15 @@ public class StackingAgent : Agent
         {
             if (!executingEvent)
             {
-                sensor.AddObservation(observation);
-                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s)",
-                    sensor.ObservationSize());
+                sensor.AddObservation(useNoisyObservations ? noisyObservation : observation);
+                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
+                    sensor.ObservationSize(), useNoisyObservations ? noisyObservation : observation);
             }
             else
             {
                 sensor.AddObservation(lastObservation);
+                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
+                    sensor.ObservationSize(), lastObservation);
             }
 
             waitingForAction = true;
@@ -317,7 +481,9 @@ public class StackingAgent : Agent
         {
             // if the episode has terminated, return the last observation
             //  (i.e., the observation at the final state)
-            sensor.AddObservation(observation);
+            sensor.AddObservation(useNoisyObservations ? noisyObservation : observation);
+            Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
+                sensor.ObservationSize(), useNoisyObservations ? noisyObservation : observation);
         }
     }
 
@@ -337,6 +503,7 @@ public class StackingAgent : Agent
                 if (!vectorAction.SequenceEqual(lastAction))
                 {
                     GameObject newTheme = SelectThemeObject();
+
                     //when this happens the physics resolution hasn't finished yet so the new position of the destination object hasn't updated
                     OnThemeObjChanged(themeObj, newTheme);
                     themeObj = newTheme;
@@ -367,12 +534,15 @@ public class StackingAgent : Agent
                     string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
                     Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
                     scenarioController.SendToEventManager(eventStr);
+                    episodeNumTrials += 1;
 
                     waitingForAction = false;
                 }
                 else
                 {
-                    Debug.LogFormat("StackingAgent.OnActionReceived: Invalid action");
+                    Debug.LogFormat("StackingAgent.OnActionReceived: Invalid action {0} - equal to {1}",
+                        string.Format("[{0}]", string.Join(",", vectorAction)),
+                        string.Format("[{0}]", string.Join(",", lastAction)));
                 }
             }
         }
@@ -495,5 +665,20 @@ public class StackingAgent : Agent
     void OnEndEpisodeChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== endEpisode flag changed ==================== {0}->{1}", oldVal, newVal));
+    }
+
+    double GaussianNoise(float mean, float stdDev)
+    {
+        System.Random rand = new System.Random(); //reuse this if you are generating many
+        double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles
+        double u2 = 1.0 - rand.NextDouble();
+        double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *
+                     Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
+        double randNormal =
+                     mean + stdDev * randStdNormal; //random normal(mean,stdDev^2)
+
+        Debug.LogFormat("Gaussian noise: {0}", randNormal);
+
+        return randNormal;
     }
 }
