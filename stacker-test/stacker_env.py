@@ -26,7 +26,8 @@ class StackerEnv(gym.Env):
         # observation: how tall is the tallest thing in the world?
         self.action_space = spaces.Box(np.array([-1,-1]),
             np.array([1,1]))
-        self.observation_space = spaces.Discrete(4)
+        #self.observation_space = spaces.Discrete(4)
+        self.observation_space = spaces.Box(np.array([0]),np.array([4]))
         
         self.last_action = np.array([-float('inf'),-float('inf')])
 
@@ -44,9 +45,11 @@ class StackerEnv(gym.Env):
         obs = step_info.obs
 
         if step_info.obs[0].shape[0] > 0:
-            obs = step_info.obs[0][0][0]
+            obs = step_info.obs[0][0]
         else:
+            print("step_info.obs[0].shape = ",step_info.obs[0].shape, "setting obs to 0")
             obs = 0
+
         if not np.allclose(action,self.last_action):
             print("observation:",obs)
 
@@ -54,7 +57,9 @@ class StackerEnv(gym.Env):
             reward = step_info.reward[0]
             print("reward in the step_info", reward)
         else:
+            print("step_info.reward.shape = ",step_info.reward.shape, "setting reward to 0")
             reward = 0
+            
         if not np.allclose(action,self.last_action):
             print("reward:",reward)
 
@@ -62,7 +67,7 @@ class StackerEnv(gym.Env):
 
         if done:
             print("Terminated\n\tObservation: %s\tReward: %s\tInterrupted = %s" % (terminal_info.obs[0] if terminal_info.obs is not None else terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
-            obs = terminal_info.obs[0][0][0]
+            obs = terminal_info.obs[0][0]
             reward = terminal_info.reward[0]
             self.last_action = np.array([-float('inf'),-float('inf')])
         else:
@@ -76,7 +81,8 @@ class StackerEnv(gym.Env):
         self.seed()
         obs = self._env.reset()
         if obs is None:
-            obs = 1
+            obs = np.array([1+np.random.normal(0,0.1,1)[0]]) # add gaussian noise
+            print("obs is None, setting obs to", obs)
         self.resetting = False
         return obs
 
