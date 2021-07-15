@@ -18,6 +18,3 @@ Some BabyVW functionality assumes Unity ML-Agents is installed.  The Unity ML-Ag
 4. `(ml-agents) pip3 install numpy==1.18.0`
 5. `(ml-agents) pip3 install mlagents==0.24.0`
 6. `(ml-agents) pip3 install gym_unity==0.24.0`
-7. `(ml-agents) pip3 install Keras`
-8. `(ml-agents) pip3 install tensorflow-estimator==2.3.0 tensorflow==2.3.0`
-9. `(ml-agents) pip3 install keras-rl2`
