@@ -22,7 +22,7 @@ idx_to_labels = {
 }
 
 def main():
-    parser = argparse.ArgumentParser(description='Autoencoder.')
+    parser = argparse.ArgumentParser(description='Autoencoder and clustering.  (Example usage: "python clusterer.py -f trial-data/3_obj_dataC.csv --ep_final -m autoencoders/3_obj_modelC.pt")')
     parser.add_argument('--file', '-f', metavar='FILE', default='.', help='source data file')
     parser.add_argument('--model', '-m', metavar='MODEL', default=None, help='model file name (saves model if --retrain is true, otherwise tries to load a model from this file)')
     parser.add_argument('--retrain', '-r', action='store_true', default=False, help='retrain?')
@@ -132,7 +132,7 @@ def main():
     if specified_k == None:
         scaled_bottleneck = StandardScaler().fit_transform(bottleneck)
     
-        # can we automatically calculate the best epsilon
+        # can we automatically calculate the best epsilon?
         db = DBSCAN(eps=.4, min_samples=7).fit(scaled_bottleneck)
         core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
         core_samples_mask[db.core_sample_indices_] = True
