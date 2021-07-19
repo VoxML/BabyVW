@@ -41,6 +41,7 @@ class StackerEnv(gym.Env):
         print("action shape:", action.reshape((1, -1)).shape)
         self._env.step()
         step_info, terminal_info = self._env.get_steps(self.behavior_name)
+        print("step_info",len(step_info))
 
         obs = step_info.obs
 
@@ -70,6 +71,8 @@ class StackerEnv(gym.Env):
             obs = terminal_info.obs[0][0]
             reward = terminal_info.reward[0]
             self.last_action = np.array([-float('inf'),-float('inf')])
+            print("last_action", self.last_action)
+
         else:
             self.last_action = action
         info = {}

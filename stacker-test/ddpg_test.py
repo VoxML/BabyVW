@@ -2,12 +2,10 @@ import numpy as np
 from stable_baselines3 import TD3
 from stable_baselines3 import DDPG
 import os
-import matplotlib.pyplot as plt
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stacker_env import StackerEnv
 from test_policy import TestPolicy
 from stable_baselines3.common.monitor import Monitor
-import pandas as pd
 
 
 log_dir = "/Users/sadaf/PycharmProjects/tmp/"
@@ -54,11 +52,4 @@ while True:
     print("obs:", obs)
     print(dones)
     if dones:
-        env.reset()
-
-    # following is just a workaround for now instead of the above lines
-
-    #if dones:
-    #    break
-
-
+        break
