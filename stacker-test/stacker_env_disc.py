@@ -1,0 +1,151 @@
+import numpy as np
+import gym
+from gym import spaces
+
+from mlagents_envs.environment import UnityEnvironment
+from mlagents_envs.base_env import ActionTuple
+
+
+class StackerEnv(gym.Env):
+    def __init__(self,
+                 environment_filename=None):
+        self._env = UnityEnvironment(environment_filename, 0)
+        self.seed(42)
+        self.resetting = False
+        self.reset()
+
+        # get behavior name from Unity
+        self.behavior_name = list(self._env.behavior_specs)[0]
+        print(self.behavior_name)
+
+        # get behavior spec
+        self.behavior_spec = self._env.behavior_specs[self.behavior_name]
+        print(self.behavior_spec)
+
+        # define action and observation space
+        # action: where on the surface of the target block do I put my object?
+        # observation: how tall is the tallest thing in the world?
+        #self.action_space = spaces.Box(np.array([-1, -1]),
+        #                               np.array([1, 1]))
+
+        self.action_space = spaces.MultiDiscrete([3,3])
+
+        self.observation_space = spaces.Discrete(4)
+
+        self.last_action = np.array([-float('inf'), -float('inf')])
+        #self.last_action = -float("inf")
+        
+        print("inited")
+
+
+    def step(self, action):
+        print("step")
+
+        if self.resetting:
+            return
+        if not np.allclose(action, self.last_action):
+            print("action:", action)
+
+        dx = action[0]
+        print("dx:", dx)
+
+        dy = action[1]
+        print("dy:", dy)
+
+
+        epsilon = 1e-4
+
+        if dx == 0:
+            self.action_continous[0] -= epsilon
+
+        if dx == 1:
+            self.action_continous[0] += 0
+
+        if dx == 2:
+            self.action_continous[0] += epsilon
+
+        if dy == 0:
+            self.action_continous[1] -= epsilon
+
+        if dy == 1:
+            self.action_continous[1] += 0
+
+        if dy == 2:
+            self.action_continous[1] += epsilon
+
+
+        # self._env.set_actions(self.behavior_name, ActionTuple(continuous=np.array([.55,.55]).reshape((1,-1))))
+
+        self._env.set_actions(self.behavior_name, ActionTuple(discrete=action.reshape((1, -1))))
+        print("action shape:", action.reshape((1, -1)).shape)
+        self._env.step()
+        step_info, terminal_info = self._env.get_steps(self.behavior_name)
+        print("step_info", len(step_info))
+
+        obs = step_info.obs
+
+        if step_info.obs[0].shape[0] > 0:
+            obs = step_info.obs[0][0][0]
+        else:
+            obs = 0
+        if not np.allclose(action, self.last_action):
+            print("observation:", obs)
+
+        if step_info.reward.shape[0] > 0:
+            reward = step_info.reward[0]
+            print("reward in the step_info", reward)
+        else:
+            reward = 0
+        if not np.allclose(action, self.last_action):
+            print("reward:", reward)
+
+        done = (len(terminal_info) != 0)
+
+        if done:
+            print("Terminated\n\tObservation: %s\tReward: %s\tInterrupted = %s" % (
+            terminal_info.obs[0] if terminal_info.obs is not None else terminal_info.obs, terminal_info.reward,
+            terminal_info.interrupted))
+            obs = terminal_info.obs[0][0][0]
+            reward = terminal_info.reward[0]
+            self.last_action = np.array([-float('inf'), -float('inf')])
+
+            #self.last_action = -float("inf")
+
+
+        else:
+            self.last_action = action
+        info = {}
+        return obs, reward, done, info
+
+    def reset(self):
+        print("Resetting")
+        self.resetting = True
+        self.seed()
+        obs = self._env.reset()
+        self.action_continous = np.zeros(2, dtype=np.float64)
+        if obs is None:
+            obs = 1
+        self.resetting = False
+        return obs
+
+    # def render(self, mode='rgb_array'):
+    # return self.visual_obs
+
+    def close(self):
+        self._env.close()
+
+    def seed(self, seed=None):
+        """Sets a fixed seed for this env's random number generator(s).
+        The valid range for seeds is [0, 99999). By default a random seed
+        will be chosen.
+        """
+        if seed is None:
+            self._seed = seed
+            return
+
+        seed = int(seed)
+        if seed < 0 or seed >= 99999:
+            print(
+                "Seed outside of valid range [0, 99999). A random seed within the valid range will be used on next reset.")
+        print("New seed " + str(seed) + " will apply on next reset.")
+        self._seed = seed
