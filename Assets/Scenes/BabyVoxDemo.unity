@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.44657874, g: 0.49641275, b: 0.5748172, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465934, g: 0.49642956, b: 0.5748249, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -956,7 +956,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 341962515}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1afc0da7e8d814675956dcfa43516bf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 313093409f719445c9c99c42746c0ea9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentParameters:
@@ -965,7 +965,11 @@ MonoBehaviour:
   MaxStep: 1000
   themeObj: {fileID: 0}
   destObj: {fileID: 0}
-  observationSize: 1
+  observationSize: 0
+  useNoisyObservations: 1
+  episodeCount: 0
+  forceMultiplier: 0.00025
+  outFileName: 
   scenarioController: {fileID: 130105524}
 --- !u!114 &341962518
 MonoBehaviour:
@@ -982,7 +986,7 @@ MonoBehaviour:
   m_BrainParameters:
     VectorObservationSize: 1
     NumStackedVectorObservations: 1
-    VectorActionSize: 09000000
+    VectorActionSize: 0300000003000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
   m_Model: {fileID: 0}
@@ -1019,7 +1023,6 @@ GameObject:
   - component: {fileID: 355840414}
   - component: {fileID: 355840415}
   - component: {fileID: 355840413}
-  - component: {fileID: 355840416}
   m_Layer: 0
   m_Name: DDPGExplorationArchitecture
   m_TagString: Untagged
@@ -1056,7 +1059,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DecisionPeriod: 20
-  TakeActionsBetweenDecisions: 1
+  TakeActionsBetweenDecisions: 0
 --- !u!114 &355840414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1088,29 +1091,9 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 355840411}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8cbb18e3612a40f882f758ffba6646f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 1000
-  themeObj: {fileID: 0}
-  destObj: {fileID: 0}
-  observationSize: 1
-  scenarioController: {fileID: 130105524}
---- !u!114 &355840416
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 355840411}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fc8fdae6fe7842b19a9a140fe5afca8, type: 3}
+  m_Script: {fileID: 11500000, guid: 8931a937e30b248b1935eb3e81fc6e66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentParameters:
@@ -1120,6 +1103,10 @@ MonoBehaviour:
   themeObj: {fileID: 0}
   destObj: {fileID: 0}
   observationSize: 1
+  useNoisyObservations: 1
+  episodeCount: 0
+  forceMultiplier: 0.00025
+  outFileName: 
   scenarioController: {fileID: 130105524}
 --- !u!1 &374420754
 GameObject:

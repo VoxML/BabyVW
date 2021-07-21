@@ -27,12 +27,12 @@ public class StackingAgent : Agent
 
     VectorSensor sensor;
 
-    float[] lastAction;
+    protected float[] lastAction;
+    protected int episodeNumTrials;
 
     Vector3 themeStartRotation;
 
     float episodeTotalReward;
-    int episodeNumTrials;
 
     bool _objectsPlaced = false;
     public bool objectsPlaced
@@ -253,9 +253,12 @@ public class StackingAgent : Agent
         string csv = string.Join(",", arr);
         Debug.LogFormat("WriteOutSample: {0}",csv);
 
-        using (StreamWriter writer = new StreamWriter(string.Format("{0}.csv", outFileName), true))
+        if (outFileName != string.Empty)
         {
-            writer.WriteLine(csv);
+            using (StreamWriter writer = new StreamWriter(string.Format("{0}.csv", outFileName), true))
+            {
+                writer.WriteLine(csv);
+            }
         }
     }
 
@@ -395,7 +398,7 @@ public class StackingAgent : Agent
         }
     }
 
-    GameObject SelectThemeObject()
+    protected GameObject SelectThemeObject()
     {
         GameObject theme = null;
 
@@ -409,7 +412,7 @@ public class StackingAgent : Agent
         return theme;
     }
 
-    int ConstructObservation()
+    protected int ConstructObservation()
     {
         // sort objects by height
         List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
@@ -493,71 +496,6 @@ public class StackingAgent : Agent
         {
             return;
         }
-
-        if (waitingForAction && !executingEvent && !resolvePhysics && !constructObservation)
-        {
-            Vector2 targetOnSurface = new Vector2(vectorAction[0], vectorAction[1]);
-
-            if (scenarioController.IsValidAction(targetOnSurface))
-            {
-                if (!vectorAction.SequenceEqual(lastAction))
-                {
-                    GameObject newTheme = SelectThemeObject();
-
-                    //when this happens the physics resolution hasn't finished yet so the new position of the destination object hasn't updated
-                    OnThemeObjChanged(themeObj, newTheme);
-                    themeObj = newTheme;
-
-                    if (themeObj == null)
-                    {
-                        return;
-                    }
-
-                    vectorAction.CopyTo(lastAction, 0);
-
-                    Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}", string.Format("[{0}]", string.Join(",", vectorAction)));
-
-                    if (targetOnSurface == Vector2.zero)
-                    {
-                        //UnityEditor.EditorApplication.ExecuteMenuItem("Edit/Play");
-                    }
-
-                    Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
-                    Bounds destBounds = GlobalHelper.GetObjectWorldSize(destObj);
-                    Debug.Log(GlobalHelper.VectorToParsable(destBounds.center));
-                    Debug.Log(GlobalHelper.VectorToParsable(destBounds.max));
-                    Vector3 targetPos = new Vector3(
-                        destBounds.center.x + (destBounds.size.x * targetOnSurface.x),
-                        destBounds.max.y + themeBounds.extents.y,
-                        destBounds.center.z + (destBounds.size.z * targetOnSurface.y));
-
-                    string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
-                    Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
-                    scenarioController.SendToEventManager(eventStr);
-                    episodeNumTrials += 1;
-
-                    waitingForAction = false;
-                }
-                else
-                {
-                    Debug.LogFormat("StackingAgent.OnActionReceived: Invalid action {0} - equal to {1}",
-                        string.Format("[{0}]", string.Join(",", vectorAction)),
-                        string.Format("[{0}]", string.Join(",", lastAction)));
-                }
-            }
-        }
-        else
-        {
-            if (!waitingForAction)
-            {
-                Debug.LogFormat("StackingAgent.OnActionReceived: Not waiting for action");
-            }
-
-            if (executingEvent)
-            {
-                Debug.LogFormat("StackingAgent.OnActionReceived: Currently executing event");
-            }
-        }
     }
 
     public override void Heuristic(float[] actionsOut)
@@ -570,7 +508,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of themeObj
     //      newVal -- new or current value of themeObj
-    void OnThemeObjChanged(GameObject oldVal, GameObject newVal)
+    protected void OnThemeObjChanged(GameObject oldVal, GameObject newVal)
     {
         Debug.Log(string.Format("==================== themeObj changed ==================== {0}->{1}",
             oldVal == null ? "NULL" : oldVal.name, newVal == null ? "NULL" : newVal.name));
@@ -581,7 +519,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of destObj
     //      newVal -- new or current value of destObj
-    void OnDestObjChanged(GameObject oldVal, GameObject newVal)
+    protected void OnDestObjChanged(GameObject oldVal, GameObject newVal)
     {
         Debug.Log(string.Format("==================== destObj changed ==================== {0}->{1}",
             oldVal == null ? "NULL" : oldVal.name, newVal == null ? "NULL" : newVal.name));
@@ -592,7 +530,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of objectsPlaced
     //      newVal -- new or current value of objectsPlaced
-    void OnObjectsPlacedChanged(bool oldVal, bool newVal)
+    protected void OnObjectsPlacedChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== objectsPlaced flag changed ==================== {0}->{1}", oldVal, newVal));
     }
@@ -602,7 +540,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of waitingForAction
     //      newVal -- new or current value of waitingForAction
-    void OnWaitingForActionChanged(bool oldVal, bool newVal)
+    protected void OnWaitingForActionChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== waitingForAction flag changed ==================== {0}->{1}", oldVal, newVal));
     }
@@ -612,7 +550,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of episodeStarted
     //      newVal -- new or current value of episodeStarted
-    void OnEpisodeStartedChanged(bool oldVal, bool newVal)
+    protected void OnEpisodeStartedChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== episodeStarted flag changed ==================== {0}->{1}", oldVal, newVal));
     }
@@ -622,7 +560,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of running
     //      newVal -- new or current value of running
-    void OnRunningChanged(bool oldVal, bool newVal)
+    protected void OnRunningChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== running flag changed ==================== {0}->{1}", oldVal, newVal));
     }
@@ -632,7 +570,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of executingEvent
     //      newVal -- new or current value of executingEvent
-    void OnExecutingEventChanged(bool oldVal, bool newVal)
+    protected void OnExecutingEventChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== executingEvent flag changed ==================== {0}->{1}", oldVal, newVal));
     }
@@ -642,7 +580,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of resolvePhysics
     //      newVal -- new or current value of resolvePhysics
-    void OnResolvePhysicsChanged(bool oldVal, bool newVal)
+    protected void OnResolvePhysicsChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== resolvePhysics flag changed ==================== {0}->{1}", oldVal, newVal));
     }
@@ -652,7 +590,7 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of constructObservation
     //      newVal -- new or current value of constructObservation
-    void OnConstructObservationChanged(bool oldVal, bool newVal)
+    protected void OnConstructObservationChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== constructObservation flag changed ==================== {0}->{1}", oldVal, newVal));
     }
@@ -662,12 +600,12 @@ public class StackingAgent : Agent
     /// </summary>
     // IN: oldVal -- previous value of endEpisode
     //      newVal -- new or current value of endEpisode
-    void OnEndEpisodeChanged(bool oldVal, bool newVal)
+    protected void OnEndEpisodeChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== endEpisode flag changed ==================== {0}->{1}", oldVal, newVal));
     }
 
-    double GaussianNoise(float mean, float stdDev)
+    protected double GaussianNoise(float mean, float stdDev)
     {
         System.Random rand = new System.Random(); //reuse this if you are generating many
         double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles

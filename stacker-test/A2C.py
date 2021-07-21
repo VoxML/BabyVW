@@ -9,11 +9,11 @@ import pandas as pd
 import argparse
 
 def main():
-    parser = argparse.ArgumentParser(description='Stacker parameters. (Example usage: "python ddpg.py -b stacker -l cube_stacking_model -t 500 --train" OR "python ddpg.py -b stacker -t 50 --test")')
+    parser = argparse.ArgumentParser(description='Stacker parameters. (Example usage: "python a2c.py -b stacker -l cube_stacking_model -t 500 --train" OR "python a2c.py -b stacker -t 50 --test")')
     parser.add_argument('--log_dir', '-l', metavar='LOGDIR', default='.', help='log directory')
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
     parser.add_argument('--total_timesteps', '-t', metavar='TOTALTIMESTEPS', default=500, help='total timesteps')
-    parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='a2c', help='name of model to save/load')
+    parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='a2c_saved', help='name of model to save/load')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
     parser.add_argument('--test', action='store_true', default=False, help='test mode')
 

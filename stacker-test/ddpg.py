@@ -1,11 +1,9 @@
 import numpy as np
-from stable_baselines3 import TD3
 from stable_baselines3 import DDPG
 import os
 import matplotlib.pyplot as plt
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stacker_env import StackerEnv
-from test_policy import TestPolicy
 from stable_baselines3.common.monitor import Monitor
 import pandas as pd
 import argparse
@@ -15,6 +13,7 @@ def main():
     parser.add_argument('--log_dir', '-l', metavar='LOGDIR', default='.', help='log directory')
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
     parser.add_argument('--total_timesteps', '-t', metavar='TOTALTIMESTEPS', default=500, help='total timesteps')
+    parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='ddpg_saved', help='name of model to save/load')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
     parser.add_argument('--test', action='store_true', default=False, help='test mode')
 
@@ -23,6 +22,7 @@ def main():
     log_dir = args.log_dir
     tb_name = args.tb_name
     total_timesteps = int(args.total_timesteps)
+    model_name = args.model_name
     train = args.train
     test = args.test
     
@@ -42,21 +42,16 @@ def main():
 
     if train:
         model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-
-        #model = TD3(TestPolicy, env, target_policy_noise = 0.002, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         model.learn(total_timesteps=total_timesteps)
 
+        print("Done learning")
 
-        print("learning done")
+        model.save(log_dir + "/" + model_name)
 
-
-        model.save(log_dir + "/" + "ddpg_test")
-
-        print("saving is done")
-
+        print("Model saved")
 
     if test:
-        model = DDPG.load(log_dir + "/" + "ddpg_test")
+        model = DDPG.load(log_dir + "/" + model_name)
         print(model)
         print(model.policy)
         print(model.get_parameters())
@@ -81,11 +76,6 @@ def main():
                 
             if i == total_timesteps:
                 break
-
-            # following is just a workaround for now instead of the above lines
-
-            #if dones:
-            #    break
 
 if __name__ == "__main__":
     main()
