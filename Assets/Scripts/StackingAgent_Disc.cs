@@ -327,7 +327,7 @@ public class StackingAgent_Disc : Agent
         {
             return;
         }
-
+        
         if (waitingForAction && !executingEvent && !resolvePhysics && !constructObservation)
         {
             Vector2 targetOnSurface = new Vector2(vectorAction[0], vectorAction[1]);
@@ -360,9 +360,9 @@ public class StackingAgent_Disc : Agent
                     Debug.Log(GlobalHelper.VectorToParsable(destBounds.center));
                     Debug.Log(GlobalHelper.VectorToParsable(destBounds.max));
                     Vector3 targetPos = new Vector3(
-                        destBounds.center.x + (destBounds.size.x * (targetOnSurface.x) - 1),
+                        destBounds.center.x + (destBounds.size.x * (targetOnSurface.x - 1)),
                         destBounds.max.y + themeBounds.extents.y,
-                        destBounds.center.z + (destBounds.size.z * (targetOnSurface.y) - 1));
+                        destBounds.center.z + (destBounds.size.z * (targetOnSurface.y - 1)));
 
                     string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
                     Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);

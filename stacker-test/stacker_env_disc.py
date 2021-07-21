@@ -28,16 +28,18 @@ class StackerEnv(gym.Env):
         #self.action_space = spaces.Box(np.array([-1, -1]),
         #                               np.array([1, 1]))
 
-        self.action_space = gym.spaces.MultiDiscrete([3,3])
+        self.action_space = spaces.MultiDiscrete([3,3])
 
         self.observation_space = spaces.Discrete(4)
 
         self.last_action = np.array([-float('inf'), -float('inf')])
         #self.last_action = -float("inf")
+        
+        print("inited")
 
 
     def step(self, action):
-
+        print("step")
 
         if self.resetting:
             return
@@ -66,7 +68,7 @@ class StackerEnv(gym.Env):
             self.action_continous[1] -= epsilon
 
         if dy == 1:
-            self.action_continous[0] += 0
+            self.action_continous[1] += 0
 
         if dy == 2:
             self.action_continous[1] += epsilon
@@ -74,7 +76,7 @@ class StackerEnv(gym.Env):
 
         # self._env.set_actions(self.behavior_name, ActionTuple(continuous=np.array([.55,.55]).reshape((1,-1))))
 
-        self._env.set_actions(self.behavior_name, ActionTuple(continuous=action.reshape((1, -1))))
+        self._env.set_actions(self.behavior_name, ActionTuple(discrete=action.reshape((1, -1))))
         print("action shape:", action.reshape((1, -1)).shape)
         self._env.step()
         step_info, terminal_info = self._env.get_steps(self.behavior_name)
