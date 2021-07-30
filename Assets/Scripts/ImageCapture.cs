@@ -5,6 +5,9 @@ using UnityEditor;
 
 public class ImageCapture : MonoBehaviour
 {
+    public int resWidth;
+    public int resHeight;
+
     [CustomEditor(typeof(ImageCapture))]
     public class ImageCaptureCustomEditor : Editor
     {
@@ -14,6 +17,28 @@ public class ImageCapture : MonoBehaviour
             bold.fontStyle = FontStyle.Bold;
 
             GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Res Width", GUILayout.MaxWidth(120));
+            EditorGUI.BeginChangeCheck();
+            int resWidth = System.Convert.ToInt32(GUILayout.TextField(((ImageCapture)target).resWidth.ToString(), GUILayout.MaxWidth(200)));
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(target, "Inspector");
+                ((ImageCapture)target).resWidth = resWidth;
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Res Height", GUILayout.MaxWidth(120));
+            EditorGUI.BeginChangeCheck();
+            int resHeight = System.Convert.ToInt32(GUILayout.TextField(((ImageCapture)target).resHeight.ToString(), GUILayout.MaxWidth(200)));
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(target, "Inspector");
+                ((ImageCapture)target).resHeight = resHeight;
+            }
+            GUILayout.EndHorizontal();
+
             if (GUILayout.Button("Save RGB Image"))
             {
                 ((ImageCapture)target).SaveRGB("RGB.png");
@@ -23,8 +48,6 @@ public class ImageCapture : MonoBehaviour
                 ((ImageCapture)target).SaveDepth();
             }
             GUILayout.EndVertical();
-
-            //TODO: make resWidth/resHeight editable fields
         }
     }
 
@@ -42,10 +65,6 @@ public class ImageCapture : MonoBehaviour
 
     public void SaveRGB(string filename)
     {
-        // TODO: automate generated and saving of images using REST API or similar
-        int resWidth = 3840;
-        int resHeight = 2160;
-        
         RenderTexture rt = new RenderTexture(resWidth, resHeight, 24);
         Camera.main.targetTexture = rt;
         Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
