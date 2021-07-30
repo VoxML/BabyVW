@@ -23,26 +23,37 @@ def main():
     tb_name = args.tb_name
     total_timesteps = int(args.total_timesteps)
     model_name = args.model_name
+    visual_obs = args.visual_obs
+    vector_obs = args.vector_obs
     train = args.train
     test = args.test
     
+    if not visual_obs and not vector_obs:
+        visual_obs = True
+        vector_obs = True
+    
     os.makedirs(log_dir, exist_ok=True)
 
-    env = StackerEnv()
+    env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs)
     env = Monitor(env, log_dir)
 
     print("observation_space:", env.observation_space.shape)
 
     if train:
-        model = A2C("MlpPolicy", env, learning_rate=1e-4, verbose=1, tensorboard_log="./" + tb_name + "/")
-        print(model)
+        if visual_obs and vector_obs:
+            model = A2C("MultiInputPolicy", env, learning_rate=1e-4, verbose=1, tensorboard_log="./" + tb_name + "/")
+        elif visual_obs:
+            model = A2C("CnnPolicy", env, learning_rate=1e-4, verbose=1, tensorboard_log="./" + tb_name + "/")
+        elif vector_obs:
+            model = A2C("MlpPolicy", env, learning_rate=1e-4, verbose=1, tensorboard_log="./" + tb_name + "/")
+
         model.learn(total_timesteps=total_timesteps)
 
         print("Done learning")
 
         model.save(log_dir + "/" + model_name)
 
-        print("Model saved")
+        print("Model saved at", log_dir + "/" + model_name)
 
     if test:
         model = A2C.load(log_dir + "/" + model_name)
@@ -65,8 +76,16 @@ def main():
             if dones:
                 env.reset()
                 
-            if obs != last_obs:
-                i += 1
+            if visual_obs and vector_obs:
+                if not np.allclose(obs["visual_obs"], last_obs["visual_obs"]) and\
+                 not np.allclose(obs["vector_obs"], last_obs["vector_obs"]):
+                    i += 1
+            elif visual_obs:
+                if np.allclose(obs, last_obs):
+                    i += 1
+            elif vector_obs:
+                if np.allclose(obs, last_obs):
+                    i += 1
                 
             if i == total_timesteps:
                 break
