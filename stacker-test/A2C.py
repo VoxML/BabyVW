@@ -14,6 +14,8 @@ def main():
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
     parser.add_argument('--total_timesteps', '-t', metavar='TOTALTIMESTEPS', default=500, help='total timesteps')
     parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='a2c_saved', help='name of model to save/load')
+    parser.add_argument('--visual_obs', action='store_true', default=False, help='use visual observations')
+    parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
     parser.add_argument('--test', action='store_true', default=False, help='test mode')
 

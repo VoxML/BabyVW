@@ -116,9 +116,7 @@ class StackerEnv(gym.Env):
         # observation: how tall is the tallest thing in the world?
         self.action_space = spaces.Box(np.array([-1,-1]),
             np.array([1,1]))
-            
-        #self.observation_space = spaces.Box(np.array([0]),np.array([4]))
-        
+                    
         if self.dict_obs:
             self.observation_space = spaces.Dict(
                 spaces={
@@ -155,7 +153,7 @@ class StackerEnv(gym.Env):
                 obs["visual_obs"] = step_info.obs[0]
             else:
                 print("step_info.obs[0].shape = ", step_info.obs[0].shape, "setting visual_obs to black")
-                obs["visual_obs"] = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
+                obs["visual_obs"] = np.zeros(image_space.shape, dtype=self.image_space.dtype)
                 
             if step_info.obs[1].shape[0] > 0:
                 obs["vector_obs"] = step_info.obs[1]
