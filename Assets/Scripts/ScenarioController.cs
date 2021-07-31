@@ -12,6 +12,9 @@ using VoxSimPlatform.Vox;
 public class ScenarioController : MonoBehaviour
 {
     public bool usingRLClient;
+    public bool squareFOV;
+    public float xMin;
+    public float xMax;
     public float nearClipRadius;
     public float interactableRadius;
     public GameObject interactableObjects;
@@ -197,7 +200,8 @@ public class ScenarioController : MonoBehaviour
                 {
                     coord = GlobalHelper.FindClearRegion(surface, t.gameObject).center;
                 } while (Vector3.Magnitude(coord - floorPosition) > interactableRadius
-                    || Vector3.Magnitude(coord - floorPosition) < nearClipRadius);
+                    || Vector3.Magnitude(coord - floorPosition) < nearClipRadius
+                    || !PointIsInCameraView(coord, mainCamera));
 
                 //coord = new Vector3(i / 2f, 0, 0);
 
@@ -378,6 +382,32 @@ public class ScenarioController : MonoBehaviour
         savePostEventImage = true;
 
         OnPostEventWaitCompleted(this, null);
+    }
+
+    bool PointIsInCameraView(Vector3 point, Camera cam)
+    {
+        Vector3 viewportPoint = cam.WorldToViewportPoint(point);
+
+        xMin = 0.0f;
+        xMax = 1.0f;
+
+        if (squareFOV)
+        {
+            xMin = ((Screen.width / 2.0f) - (Screen.height / 4.0f)) / Screen.width;
+            xMax = 1.0f - xMin;
+        }
+
+        if ((viewportPoint.x > xMin) && (viewportPoint.x < xMax) &&
+            (viewportPoint.y > 0.0f) && (viewportPoint.y < 1.0f) &&
+            (viewportPoint.z > 0.0f))
+        {
+            Debug.LogFormat("{0} {1} {2} {3}", GlobalHelper.VectorToParsable(point), xMin, viewportPoint.x, xMax);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public bool IsValidAction(Vector2 action)

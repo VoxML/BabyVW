@@ -1,5 +1,6 @@
 import numpy as np
-from stable_baselines3 import DDPG
+from stable_baselines3 import TD3
+from test_policy import TestPolicy
 import os
 import matplotlib.pyplot as plt
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -14,8 +15,6 @@ def main():
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
     parser.add_argument('--total_timesteps', '-t', metavar='TOTALTIMESTEPS', default=500, help='total timesteps')
     parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='ddpg_saved', help='name of model to save/load')
-    parser.add_argument('--visual_obs', action='store_true', default=False, help='use visual observations')
-    parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
     parser.add_argument('--test', action='store_true', default=False, help='test mode')
 
@@ -25,18 +24,12 @@ def main():
     tb_name = args.tb_name
     total_timesteps = int(args.total_timesteps)
     model_name = args.model_name
-    visual_obs = args.visual_obs
-    vector_obs = args.vector_obs
     train = args.train
     test = args.test
     
-    if not visual_obs and not vector_obs:
-        visual_obs = True
-        vector_obs = True
-    
     os.makedirs(log_dir, exist_ok=True)
 
-    env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs)
+    env = StackerEnv()
     env = Monitor(env, log_dir)
 
     print("observation_space:", env.observation_space.shape)
@@ -49,23 +42,17 @@ def main():
     action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
     if train:
-        if visual_obs and vector_obs:
-            model = DDPG("MultiInputPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-        elif visual_obs:
-            model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-        elif vector_obs:
-            model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-
+        model = TD3(TestPolicy, env, target_policy_noise = 0.002, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         model.learn(total_timesteps=total_timesteps)
 
         print("Done learning")
 
         model.save(log_dir + "/" + model_name)
 
-        print("Model saved at", log_dir + "/" + model_name)
+        print("Model saved")
 
     if test:
-        model = DDPG.load(log_dir + "/" + model_name)
+        model = TD3.load(log_dir + "/" + model_name)
         print(model)
         print(model.policy)
         print(model.get_parameters())
@@ -85,16 +72,8 @@ def main():
             if dones:
                 env.reset()
                 
-            if visual_obs and vector_obs:
-                if not np.allclose(obs["visual_obs"], last_obs["visual_obs"]) and\
-                 not np.allclose(obs["vector_obs"], last_obs["vector_obs"]):
-                    i += 1
-            elif visual_obs:
-                if np.allclose(obs, last_obs):
-                    i += 1
-            elif vector_obs:
-                if np.allclose(obs, last_obs):
-                    i += 1
+            if obs != last_obs:
+                i += 1
                 
             if i == total_timesteps:
                 break

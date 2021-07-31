@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Unity.MLAgents;
+using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using VoxSimPlatform.Global;
@@ -12,9 +13,10 @@ public class StackingAgent : Agent
 {
     public GameObject themeObj, destObj;
     public int observationSize;
-    public bool useNoisyObservations;
+    public bool useVectorObservations, noisyVectors;
 
     public int episodeCount;
+    public int numTrials;
 
     public float forceMultiplier;
 
@@ -25,6 +27,7 @@ public class StackingAgent : Agent
     List<Transform> usedDestObjs = new List<Transform>();
     List<Transform> interactableObjs;
 
+    CameraSensor cameraSensor;
     VectorSensor sensor;
 
     protected float[] lastAction;
@@ -150,7 +153,15 @@ public class StackingAgent : Agent
 
     void Start()
     {
-        sensor = new VectorSensor(observationSize);
+        if (useVectorObservations)
+        {
+            sensor = new VectorSensor(observationSize);
+        }
+        else
+        {
+            sensor = new VectorSensor(0);
+            GetComponent<BehaviorParameters>().BrainParameters.VectorObservationSize = 0;
+        }
 
         lastAction = new float[] { -Mathf.Infinity, -Mathf.Infinity };
 
@@ -159,6 +170,7 @@ public class StackingAgent : Agent
         if (scenarioController != null)
         {
             scenarioController.usingRLClient = true;
+            scenarioController.squareFOV = GetComponent<CameraSensorComponent>() != null;
             scenarioController.ObjectsInited += ObjectsPlaced;
             scenarioController.EventExecuting += ExecutingEvent;
             scenarioController.EventCompleted += ApplyForce;
@@ -205,6 +217,10 @@ public class StackingAgent : Agent
             {
                 endEpisode = true;
             }
+            else if (episodeNumTrials >= numTrials)
+            {
+                endEpisode = true;
+            }
 
             constructObservation = false;
         }
@@ -226,6 +242,15 @@ public class StackingAgent : Agent
             resolvePhysics = false;
             constructObservation = false;
             endEpisode = false;
+
+            if (useVectorObservations)
+            { 
+                sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+                Debug.LogFormat("StackingAgent.FixedUpdate: Collecting {0} observation(s) - [{1}]",
+                    sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+                CollectObservations(sensor);
+            }
+
             EndEpisode();
         }
     }
@@ -245,7 +270,7 @@ public class StackingAgent : Agent
             objNameToIntDict[destTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
             themeStartRotation.x * Mathf.Deg2Rad, themeStartRotation.y * Mathf.Deg2Rad, themeStartRotation.z * Mathf.Deg2Rad,
             action[0], action[1],
-            useNoisyObservations ? noisyObservation : observation,
+            noisyVectors ? noisyObservation : observation,
             reward,
             episodeTotalReward,
             episodeTotalReward/episodeNumTrials
@@ -447,13 +472,17 @@ public class StackingAgent : Agent
         episodeCount += 1;
         episodeNumTrials = 0;
 
-        Debug.Log("StackingAgent.OnEpisodeBegin: Beginning episode");
+        Debug.LogFormat("StackingAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;
-        observation = 1;
-        noisyObservation = observation + (float)GaussianNoise(0, 0.1f);
-        sensor.AddObservation(useNoisyObservations ? noisyObservation : observation);
-        Debug.LogFormat("StackingAgent.OnEpisodeBegin: Collecting {0} observation(s) - [{1}]",
-            sensor.ObservationSize(), useNoisyObservations ? noisyObservation : observation);
+
+        if (useVectorObservations)
+        {
+            observation = 1;
+            noisyObservation = observation + (float)GaussianNoise(0, 0.1f);
+            sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+            Debug.LogFormat("StackingAgent.OnEpisodeBegin: Collecting {0} observation(s) - [{1}]",
+                sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+        }
 
         scenarioController.PlaceRandomly(scenarioController.surface);
         PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
@@ -467,26 +496,35 @@ public class StackingAgent : Agent
         {
             if (!executingEvent)
             {
-                sensor.AddObservation(useNoisyObservations ? noisyObservation : observation);
-                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                    sensor.ObservationSize(), useNoisyObservations ? noisyObservation : observation);
+                if (useVectorObservations)
+                { 
+                    sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+                    Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
+                        sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+                }
             }
             else
             {
-                sensor.AddObservation(lastObservation);
-                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                    sensor.ObservationSize(), lastObservation);
+                if (useVectorObservations)
+                {
+                    sensor.AddObservation(lastObservation);
+                    Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
+                        sensor.ObservationSize(), lastObservation);
+                }
             }
 
             waitingForAction = true;
         }
         else
         {
-            // if the episode has terminated, return the last observation
-            //  (i.e., the observation at the final state)
-            sensor.AddObservation(useNoisyObservations ? noisyObservation : observation);
-            Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                sensor.ObservationSize(), useNoisyObservations ? noisyObservation : observation);
+            if (useVectorObservations)
+            {
+                // if the episode has terminated, return the last observation
+                //  (i.e., the observation at the final state)
+                sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
+                    sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+            }
         }
     }
 
