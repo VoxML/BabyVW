@@ -1,6 +1,5 @@
 import numpy as np
-from stable_baselines3 import TD3
-from test_policy import TestPolicy
+from stable_baselines3 import DDPG
 import os
 import matplotlib.pyplot as plt
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -42,7 +41,7 @@ def main():
     action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
     if train:
-        model = TD3(TestPolicy, env, target_policy_noise = 0.002, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
+        model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         model.learn(total_timesteps=total_timesteps)
 
         print("Done learning")
