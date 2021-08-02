@@ -51,7 +51,7 @@ def main():
         print("Model saved")
 
     if test:
-        model = TD3.load(log_dir + "/" + model_name)
+        model = DDPG.load(log_dir + "/" + model_name)
         print(model)
         print(model.policy)
         print(model.get_parameters())
