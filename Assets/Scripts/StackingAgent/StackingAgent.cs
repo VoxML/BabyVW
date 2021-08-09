@@ -17,6 +17,7 @@ public class StackingAgent : Agent
 
     public int episodeCount;
     public int numTrials;
+    public int episodeNumTrials;
 
     public float forceMultiplier;
 
@@ -31,7 +32,6 @@ public class StackingAgent : Agent
     VectorSensor sensor;
 
     protected float[] lastAction;
-    protected int episodeNumTrials;
 
     Vector3 themeStartRotation;
 
@@ -215,6 +215,7 @@ public class StackingAgent : Agent
 
             if (observation == interactableObjs.Count)
             {
+                Debug.LogFormat("StackingAgent.FixedUpdate: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
                 endEpisode = true;
             }
             else if (episodeNumTrials >= numTrials)
@@ -227,6 +228,7 @@ public class StackingAgent : Agent
 
         if (resolvePhysics)
         {
+            Debug.Log("StackingAgent.FixedUpdate: resolving physics");
             PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
             resolvePhysics = false;
             constructObservation = true;
@@ -261,8 +263,13 @@ public class StackingAgent : Agent
         {
             { "Cube", 0 },
             { "Sphere", 1 },
-            { "Cylinder", 2 }
+            { "Cylinder", 2 },
+            { "Capsule", 3 }
         };
+
+        Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,
+            themeTransform.eulerAngles.y > 180.0f ? themeTransform.eulerAngles.y - 360.0f : themeTransform.eulerAngles.y,
+            themeTransform.eulerAngles.z > 180.0f ? themeTransform.eulerAngles.z - 360.0f : themeTransform.eulerAngles.z);
 
         float[] arr = new float[] {
             episodeCount,
@@ -271,6 +278,7 @@ public class StackingAgent : Agent
             themeStartRotation.x * Mathf.Deg2Rad, themeStartRotation.y * Mathf.Deg2Rad, themeStartRotation.z * Mathf.Deg2Rad,
             action[0], action[1],
             noisyVectors ? noisyObservation : observation,
+            themeEndRotation.x * Mathf.Deg2Rad, themeEndRotation.y * Mathf.Deg2Rad, themeEndRotation.z * Mathf.Deg2Rad,
             reward,
             episodeTotalReward,
             episodeTotalReward/episodeNumTrials
@@ -441,6 +449,7 @@ public class StackingAgent : Agent
     {
         // sort objects by height
         List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
+        Debug.LogFormat("StackingAgent.ConstructObservation: [{0}]", string.Join(",", sortedByHeight.Select(o => o.position.y).ToList()));
 
         // take the topmost object and round its y-coord up to nearest int
         //  multiply by 10 (blocks are .1 x .1 x .1)

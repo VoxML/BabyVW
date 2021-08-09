@@ -55,7 +55,8 @@ public class ScenarioController : MonoBehaviour
     {
         { "Cube","block" },
         { "Sphere","ball" },
-        { "Cylinder","cylinder" }
+        { "Cylinder","cylinder" },
+        { "Capsule","capsule" }
     };
 
     public event EventHandler ObjectsInited;
@@ -106,6 +107,7 @@ public class ScenarioController : MonoBehaviour
         eventManager = GameObject.Find("BehaviorController").GetComponent<EventManager>();
         eventManager.ExecuteEvent += ExecutingEvent;
         eventManager.QueueEmpty += CompletedEvent;
+        eventManager.InvalidPositionError += InvalidPosition;
 
         relationTracker = GameObject.Find("BehaviorController").GetComponent<RelationTracker>();
         
@@ -382,6 +384,15 @@ public class ScenarioController : MonoBehaviour
         savePostEventImage = true;
 
         OnPostEventWaitCompleted(this, null);
+    }
+
+    void InvalidPosition(object sender, EventArgs e)
+    {
+        Debug.LogWarningFormat("ScenarioController.InvalidPositionError: {0} {1} {2} {3}",
+            ((CalculatedPositionArgs)e).Formula,
+            GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Position),
+            GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Direction),
+            ((CalculatedPositionArgs)e).Distance);
     }
 
     bool PointIsInCameraView(Vector3 point, Camera cam)

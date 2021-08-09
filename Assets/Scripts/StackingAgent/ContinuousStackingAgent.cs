@@ -51,10 +51,14 @@ public class ContinuousStackingAgent : StackingAgent
                         destBounds.max.y + themeBounds.extents.y,
                         destBounds.center.z + (destBounds.size.z * targetOnSurface.y));
 
+                    themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
+                    PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
+
                     string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
                     Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
                     scenarioController.SendToEventManager(eventStr);
                     episodeNumTrials += 1;
+                    Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumTrials = {0}", episodeNumTrials);
 
                     waitingForAction = false;
                 }
