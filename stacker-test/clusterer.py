@@ -5,6 +5,7 @@ import numpy as np
 import neuralnetworks_torch as nntorch
 import os
 import pandas
+import time
 from scipy.optimize import linear_sum_assignment as linear_assignment
 from sklearn import metrics
 from sklearn.cluster import DBSCAN
@@ -18,7 +19,8 @@ idx_to_labels = {
     -1 : "outlier",
     0 : "cube",
     1 : "sphere",
-    2 : "cylinder"
+    2 : "cylinder",
+    3 : "capsule"
 }
 
 def main():
@@ -75,14 +77,15 @@ def main():
     #   0: episode #
     #   1: theme obj
     #   2: dest obj
-    #   3-5: theme obj rotation
+    #   3-5: theme obj rotation at start of action
     #   6-7: action
     #   8: observation
-    #   9: reward
-    #   10: ep. total reward
-    #   11: ep. mean reward
+    #   9-11: theme obj rotation after action
+    #   12: reward
+    #   13: ep. total reward
+    #   14: ep. mean reward
 
-    X = np.hstack([df[:, 3:10]])
+    X = np.hstack([df[:, 3:9],df[:, 12:]])
     T = df[:, 1:2]
     print(X.shape, T.shape)
     
@@ -101,7 +104,10 @@ def main():
             
         nnet = nntorch.NeuralNetwork(n_in, hiddens, n_out, act_func_per_layer=act_funcs)
         
+        start_time = time.time()
         nnet.fit(X, X, 5000, 0.001, method='adam', verbose=True)
+        end_time = time.time()
+        print("Training took %s sec." % (end_time-start_time))
         plt.plot(nnet.error_trace)
         plt.show()
         

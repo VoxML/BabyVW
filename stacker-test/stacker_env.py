@@ -153,7 +153,7 @@ class StackerEnv(gym.Env):
                 obs["visual_obs"] = step_info.obs[0]
             else:
                 print("step_info.obs[0].shape = ", step_info.obs[0].shape, "setting visual_obs to black")
-                obs["visual_obs"] = np.zeros(image_space.shape, dtype=self.image_space.dtype)
+                obs["visual_obs"] = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
                 
             if step_info.obs[1].shape[0] > 0:
                 obs["vector_obs"] = step_info.obs[1]
@@ -169,10 +169,10 @@ class StackerEnv(gym.Env):
                     obs = (obs*255).astype('float32')
             else:
                 if self.visual_obs:
-                    print("step_info.obs[0].shape = ", step_info.obs[0].shape[0], "setting visual_obs to black")
+                    print("step_info.obs[0].shape =", step_info.obs[0].shape[0], "setting visual_obs to black")
                     obs = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
                 elif self.vector_obs:
-                    print("step_info.obs[0].shape = ", step_info.obs[0].shape[0], "setting vector_obs to 0")
+                    print("step_info.obs[0].shape =", step_info.obs[0].shape[0], "setting vector_obs to 0")
                     obs = 0
 
         if not np.allclose(action,self.last_action):
@@ -183,7 +183,7 @@ class StackerEnv(gym.Env):
             reward = step_info.reward[0]
             print("reward from step_info", reward)
         else:
-            print("step_info.reward.shape = ", step_info.reward.shape, "setting reward to 0")
+            print("step_info.reward.shape =", step_info.reward.shape, "setting reward to 0")
             reward = 0
             
         if not np.allclose(action,self.last_action):

@@ -54,7 +54,7 @@ def main():
         elif visual_obs:
             model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         elif vector_obs:
-            model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
+            model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/", learning_starts=0)
 
         model.learn(total_timesteps=total_timesteps)
 
