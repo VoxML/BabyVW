@@ -1,6 +1,7 @@
 import argparse
 import itertools
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import neuralnetworks_torch as nntorch
 import os
@@ -30,6 +31,7 @@ def main():
     parser.add_argument('--retrain', '-r', action='store_true', default=False, help='retrain?')
     parser.add_argument('--num_means', '-k', metavar='K', default=None, help='specify number of means (default None = use DBSCAN, 0 = automatically estimate k and use k-means)')
     parser.add_argument('--ep_final', action='store_true', default=False, help='use episode final state only')
+    parser.add_argument('--gpu', action='store_true', default=False, help='train using GPU if available (only meaningful if --retrain is true')
     parser.add_argument('--elbow', action='store_true', default=False, help='use elbow k calculation')
     parser.add_argument('--silhouette', action='store_true', default=False, help='use silhouette k calculation')
     parser.add_argument('--mean', action='store_true', default=False, help='use mean of elbow and silhouette k calculation')
@@ -41,6 +43,7 @@ def main():
     retrain = args.retrain
     specified_k = int(args.num_means) if args.num_means is not None else None
     ep_final = args.ep_final
+    gpu = args.gpu
     elbow_k_calc = args.elbow
     silhouette_k_calc = args.silhouette
     mean_k_calc = args.mean
@@ -53,9 +56,7 @@ def main():
     df = pandas.read_csv(filepath, header=None)
     print(df.shape)
     print(df)
-    
-    #df = df.loc[df[1] < 2]
-    
+        
     if ep_final:
         episode_terminal_data = []
         
@@ -64,36 +65,37 @@ def main():
             for j in class_data[0].unique():
                 episode_terminal_data.append(df.loc[class_data.where(class_data == j).last_valid_index()])
             
-        df = pandas.DataFrame(episode_terminal_data).to_numpy()
+        df = pandas.DataFrame(episode_terminal_data).to_numpy(dtype=np.float32)
     else:
         df = df.values
         
     print(pandas.DataFrame(df))
     input("Press Return to continue")
-
-    #df = np.array([v for v in df if v[8] < 1.5])
         
     # columns:
     #   0: episode #
     #   1: theme obj
     #   2: dest obj
     #   3-5: theme obj rotation at start of action
-    #   6-7: action
-    #   8: observation
+    #   6: theme obj angle offset from vertical at start of action
+    #   7-8: action
     #   9-11: theme obj rotation after action
-    #   12: reward
-    #   13: ep. total reward
-    #   14: ep. mean reward
+    #   12: theme obj angle offset from vertical at end of action
+    #   13: observation
+    #   14: reward
+    #   15: ep. total reward
+    #   16: ep. mean reward
 
-    X = np.hstack([df[:, 3:9],df[:, 12:]])
+    X = np.hstack([df[:, 7:9],df[:, 12:14],df[:, 16:]])
     T = df[:, 1:2]
     print(X.shape, T.shape)
     
     n_in = X.shape[1]
     n_out = n_in
     
-    hiddens = [256, 16, 4, 2, 16, 256, 8192]
-    act_funcs = ['tanh','tanh','tanh','silu','prelu','prelu','prelu']
+    #hiddens = [12, 6, 4, 3, 4, 5, 25]
+    hiddens = [81, 27, 9, 3, 27, 243, 2187]
+    act_funcs = ['gelu', 'tanh', 'tanh', 'relu', 'tanh', 'tanh', 'prelu']
         
     bottleneck = np.array([])
     
@@ -102,10 +104,16 @@ def main():
             if os.path.exists(modelpath):
                 os.remove(modelpath)
             
-        nnet = nntorch.NeuralNetwork(n_in, hiddens, n_out, act_func_per_layer=act_funcs)
+        device = 'cpu'
+        if gpu:
+            if not torch.cuda.is_available():
+                print("CUDA not available. Defaulting to CPU.")
+            else:
+                device = 'cuda:0'
+        nnet = nntorch.NeuralNetwork(n_in, hiddens, n_out, act_func_per_layer=act_funcs, device=device)
         
         start_time = time.time()
-        nnet.fit(X, X, 5000, 0.001, method='adam', verbose=True)
+        nnet.fit(X, X, 10000, 0.001, method='adam', verbose=True)
         end_time = time.time()
         print("Training took %s sec." % (end_time-start_time))
         plt.plot(nnet.error_trace)
@@ -129,17 +137,39 @@ def main():
     
     for i in idxs:
         print("%s\t%s" % (i, bottleneck[i]))
-    
-    plt.figure(figsize=(12, 10))
-    plt.scatter(bottleneck[:, 0], bottleneck[:, 1], c=T.flat, alpha=0.5, marker="X")
-    plt.colorbar();
+        
+    if bottleneck.shape[-1] == 2:
+        plt.figure(figsize=(12, 10))
+        colors = [plt.cm.Spectral(each)
+                  for each in np.linspace(0, 1, len(set(T.flat)))]
+
+        for i, col in zip(set(T.flat), colors):
+            class_member_mask = (T.flat == i)
+            pt = bottleneck[class_member_mask]
+            plt.plot(pt[:, 0], pt[:, 1], 'X', markerfacecolor=tuple(col),
+                     markeredgecolor='k', label=i, alpha=0.5)
+        plt.legend()
+    elif bottleneck.shape[-1] == 3:
+        fig = plt.figure(figsize=(12, 10))
+        ax = Axes3D(fig, auto_add_to_figure=False)
+        fig.add_axes(ax)
+        colors = [plt.cm.Spectral(each)
+                  for each in np.linspace(0, 1, len(set(T.flat)))]
+
+        for i, col in zip(set(T.flat), colors):
+            class_member_mask = (T.flat == i)
+            pt = bottleneck[class_member_mask]
+            ax.plot(pt[:, 0], pt[:, 1], pt[:, 2], 'X', markerfacecolor=tuple(col),
+                     markeredgecolor='k', label=i, alpha=0.5)
+        ax.legend()
+        
     plt.show()
     
     if specified_k == None:
         scaled_bottleneck = StandardScaler().fit_transform(bottleneck)
     
         # can we automatically calculate the best epsilon?
-        db = DBSCAN(eps=.4, min_samples=7).fit(scaled_bottleneck)
+        db = DBSCAN(eps=.43, min_samples=int(bottleneck.shape[0]/20)).fit(scaled_bottleneck)
         core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
         core_samples_mask[db.core_sample_indices_] = True
         
@@ -200,17 +230,37 @@ def main():
         
     print("Average clustering accuracy = %.4f%%" % (100 * cluster_acc(labels, predictions)))
             
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1,2,1)
-    plt.scatter(bottleneck[:, 0], bottleneck[:, 1], c=T.flat, alpha=0.5, marker="X")
-    plt.colorbar();
-    plt.subplot(1,2,2)
+    if bottleneck.shape[-1] == 2:
+        plt.figure(figsize=(12, 5))
+        plt.subplot(1,2,1)
+        colors = [plt.cm.Spectral(each)
+                  for each in np.linspace(0, 1, len(set(T.flat)))]
+
+        for i, col in zip(set(T.flat), colors):
+            class_member_mask = (T.flat == i)
+            pt = bottleneck[class_member_mask]
+            plt.plot(pt[:, 0], pt[:, 1], 'X', markerfacecolor=tuple(col),
+                     markeredgecolor='k', label=i, alpha=0.5)
+        plt.legend()
+        plt.subplot(1,2,2)
+    elif bottleneck.shape[-1] == 3:
+        fig = plt.figure(figsize=(12, 5))
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
+        colors = [plt.cm.Spectral(each)
+                  for each in np.linspace(0, 1, len(set(T.flat)))]
+
+        for i, col in zip(set(T.flat), colors):
+            class_member_mask = (T.flat == i)
+            pt = bottleneck[class_member_mask]
+            ax.plot(pt[:, 0], pt[:, 1], pt[:, 2], 'X', markerfacecolor=tuple(col),
+                     markeredgecolor='k', label=i, alpha=0.5)
+        ax.legend()
+        ax = fig.add_subplot(1, 2, 2, projection='3d')
     
     if specified_k == None:
-        unique_labels = set(predictions)
         colors = [plt.cm.Spectral(each)
-                  for each in np.linspace(0, 1, len(unique_labels))]
-        for i, col in zip(unique_labels, colors):
+                  for each in np.linspace(0, 1, len(set(predictions)))]
+        for i, col in zip(set(predictions), colors):
             if i == -1:
                 # Black used for noise.
                 col = [0, 0, 0, 1]
@@ -219,12 +269,20 @@ def main():
             aligned_pred = align_predictions(predictions,ind)
             class_member_mask = (aligned_pred == i)
 
-            xy = bottleneck[class_member_mask & core_samples_mask]
-            plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+            pt = bottleneck[class_member_mask & core_samples_mask]
+            if bottleneck.shape[-1] == 2:
+                plt.plot(pt[:, 0], pt[:, 1], 'o', markerfacecolor=tuple(col),
+                     markeredgecolor='k', markersize=12, label=i, alpha=0.5)
+            elif bottleneck.shape[-1] == 3:
+                ax.plot(pt[:, 0], pt[:, 1], pt[:, 2], 'o', markerfacecolor=tuple(col),
                      markeredgecolor='k', markersize=12, label=i, alpha=0.5)
 
-            xy = bottleneck[class_member_mask & ~core_samples_mask]
-            plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+            pt = bottleneck[class_member_mask & ~core_samples_mask]
+            if bottleneck.shape[-1] == 2:
+                plt.plot(pt[:, 0], pt[:, 1], 'o', markerfacecolor=tuple(col),
+                     markeredgecolor='k', markersize=6, label=i, alpha=0.5)
+            elif bottleneck.shape[-1] == 3:
+                ax.plot(pt[:, 0], pt[:, 1], pt[:, 2], 'o', markerfacecolor=tuple(col),
                      markeredgecolor='k', markersize=6, label=i, alpha=0.5)
     else:
         classes = []
@@ -232,8 +290,12 @@ def main():
         for i in range(k):
             classes.append(bottleneck[predictions == i])
         for i in range(k):
-            plt.scatter(classes[i][:, 0], classes[i][:, 1], label=i, alpha=0.5)
-        plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], color='b', marker='s', label='Centroid')
+            if bottleneck.shape[-1] == 2:
+                plt.scatter(classes[i][:, 0], classes[i][:, 1], label=i, alpha=0.5)
+                plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], color='b', marker='s', label='Centroid')
+            elif bottleneck.shape[-1] == 3:
+                plt.scatter(classes[i][:, 0], classes[i][:, 1], classes[i][:, 2], label=i, alpha=0.5)
+                plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], kmeans.cluster_centers_[:, 2], color='b', marker='s', label='Centroid')
     plt.legend()
     plt.show()
     
