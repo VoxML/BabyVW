@@ -534,7 +534,7 @@ MonoBehaviour:
   objectTypes: {fileID: 784435535}
   interactableObjectTypes:
   - {fileID: 1242741016}
-  - {fileID: 1387273658}
+  - {fileID: 1242741016}
   numTotalObjs: 2
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
@@ -1058,6 +1058,7 @@ MonoBehaviour:
   numTrials: 10
   episodeNumTrials: 0
   forceMultiplier: 0.00025
+  writeOutSamples: 0
   outFileName: 
   scenarioController: {fileID: 130105524}
 --- !u!114 &341962518
@@ -1217,6 +1218,7 @@ MonoBehaviour:
   numTrials: 10
   episodeNumTrials: 0
   forceMultiplier: 0.00025
+  writeOutSamples: 0
   outFileName: 
   scenarioController: {fileID: 130105524}
 --- !u!114 &355840416
@@ -2488,7 +2490,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &784435535
 Transform:
   m_ObjectHideFlags: 0
@@ -4481,17 +4483,18 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 2000
+  MaxStep: 10000
   themeObj: {fileID: 0}
   destObj: {fileID: 0}
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
   episodeCount: 0
-  numTrials: 4
+  numTrials: 10
   episodeNumTrials: 0
   forceMultiplier: 0.00025
-  outFileName: 080621-4obj
+  writeOutSamples: 0
+  outFileName: stacker-test/trial-data/081021-4obj
   scenarioController: {fileID: 130105524}
 --- !u!114 &1759529657
 MonoBehaviour:
@@ -4728,6 +4731,7 @@ MonoBehaviour:
   numTrials: 10
   episodeNumTrials: 0
   forceMultiplier: 0.00025
+  writeOutSamples: 0
   outFileName: 
   scenarioController: {fileID: 130105524}
 --- !u!114 &1899736569
