@@ -21,6 +21,8 @@ public class StackingAgent : Agent
 
     public float forceMultiplier;
 
+    public bool writeOutSamples;
+
     public string outFileName;
 
     public ScenarioController scenarioController;
@@ -202,15 +204,27 @@ public class StackingAgent : Agent
             {
                 // figure out which is the new destination object
                 List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
+                Debug.LogFormat("StackingAgent.FixedUpdate: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
+                    sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
 
-                GameObject newDest = sortedByHeight.First().gameObject;
+                GameObject newDest = destObj == null ? null : destObj;
+                if ((destObj == null) || (Mathf.Abs(sortedByHeight.First().position.y - destObj.transform.position.y) > Constants.EPSILON))
+                {
+                    newDest = sortedByHeight.First().gameObject;
+                }
+
+                if (newDest != destObj)
+                {
+                    if (observation - lastObservation < 0)
+                    {
+                        usedDestObjs = usedDestObjs.Take(usedDestObjs.Count + (int)(observation - lastObservation)).ToList();
+                        Debug.LogFormat("StackingAgent.FixedUpdate: usedDestObjs = [{0}]", string.Join(", ",
+                            usedDestObjs.Select(o => o.name)));
+                    }
+                }
+
                 OnDestObjChanged(destObj, newDest);
                 destObj = newDest;
-
-                if (observation - lastObservation < 0)
-                {
-                    usedDestObjs = usedDestObjs.Take(usedDestObjs.Count + (int)(observation - lastObservation)).ToList();
-                } 
             }
 
             if (observation == interactableObjs.Count)
@@ -259,6 +273,11 @@ public class StackingAgent : Agent
 
     void WriteOutSample(Transform themeTransform, Transform destTransform, float[] action, float reward)
     {
+        if (!writeOutSamples)
+        {
+            return;
+        }
+
         Dictionary<string, int> objNameToIntDict = new Dictionary<string, int>()
         {
             { "Cube", 0 },
@@ -270,15 +289,19 @@ public class StackingAgent : Agent
         Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,
             themeTransform.eulerAngles.y > 180.0f ? themeTransform.eulerAngles.y - 360.0f : themeTransform.eulerAngles.y,
             themeTransform.eulerAngles.z > 180.0f ? themeTransform.eulerAngles.z - 360.0f : themeTransform.eulerAngles.z);
+        float angleOffsetStart = Vector3.Angle(Vector3.up, Quaternion.Euler(themeStartRotation) * Vector3.up);
+        float angleOffsetEnd = Vector3.Angle(Vector3.up, themeTransform.up);
 
         float[] arr = new float[] {
             episodeCount,
             objNameToIntDict[themeTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
             objNameToIntDict[destTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
             themeStartRotation.x * Mathf.Deg2Rad, themeStartRotation.y * Mathf.Deg2Rad, themeStartRotation.z * Mathf.Deg2Rad,
+            angleOffsetStart * Mathf.Deg2Rad,
             action[0], action[1],
-            noisyVectors ? noisyObservation : observation,
             themeEndRotation.x * Mathf.Deg2Rad, themeEndRotation.y * Mathf.Deg2Rad, themeEndRotation.z * Mathf.Deg2Rad,
+            angleOffsetEnd * Mathf.Deg2Rad,
+            noisyVectors ? noisyObservation : observation,
             reward,
             episodeTotalReward,
             episodeTotalReward/episodeNumTrials
@@ -288,7 +311,18 @@ public class StackingAgent : Agent
 
         if (outFileName != string.Empty)
         {
-            using (StreamWriter writer = new StreamWriter(string.Format("{0}.csv", outFileName), true))
+            if (!outFileName.EndsWith(".csv"))
+            {
+                outFileName = string.Format("{0}.csv", outFileName);
+            }
+            string dirPath = new DirectoryInfo(outFileName).Name;
+
+            if (!Directory.Exists(dirPath))
+            {
+                DirectoryInfo dirInfo = Directory.CreateDirectory(dirPath);
+            }
+
+            using (StreamWriter writer = new StreamWriter(outFileName, true))
             {
                 writer.WriteLine(csv);
             }
@@ -297,25 +331,38 @@ public class StackingAgent : Agent
 
     public void ObjectsPlaced(object sender, EventArgs e)
     {
-        if (!objectsPlaced)
-        {
-            objectsPlaced = true;
-        }
-
         interactableObjs = scenarioController.interactableObjects.
             GetComponentsInChildren<Voxeme>().Where(v => v.isActiveAndEnabled).Select(v => v.transform).ToList();
+
         usedDestObjs.Clear();
+        Debug.LogFormat("StackingAgent.ObjectsPlaced: usedDestObjs = [{0}]", string.Join(", ",
+            usedDestObjs.Select(o => o.name)));
 
         Debug.LogFormat("StackingAgent.ObjectsPlaced: Objects placed: [{0}]",
             string.Join(",\n\t",
                 interactableObjs.Select(t => string.Format("{{{0}:{1}}}", t.name, GlobalHelper.VectorToParsable(t.position))).ToArray()));
 
-        destObj = interactableObjs.OrderByDescending(t => t.position.y).ToList().First().gameObject;
+        List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
+        Debug.LogFormat("StackingAgent.ObjectsPlaced: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
+                    sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
+
+        GameObject newDest = destObj == null ? null : destObj; 
+        //if ((destObj == null) || (Mathf.Abs(sortedByHeight.First().position.y - destObj.transform.position.y) > Constants.EPSILON))
+        //{
+            newDest = sortedByHeight.First().gameObject;
+        //}
+        OnDestObjChanged(destObj, newDest);
+        destObj = newDest;
         usedDestObjs.Add(destObj.transform);
 
         if (destObj != null)
         {
             Debug.LogFormat("StackingAgent.ObjectsPlaced: Setting destination object: {0}", destObj.name);
+        }
+
+        if (!objectsPlaced)
+        {
+            objectsPlaced = true;
         }
     }
 
@@ -435,8 +482,15 @@ public class StackingAgent : Agent
     {
         GameObject theme = null;
 
-        theme = interactableObjs.Except(usedDestObjs)
-            .OrderBy(t => t.position.y).ToList().First().gameObject;
+        Debug.LogFormat("StackingAgent.FixedUpdate: usedDestObjs = [{0}]", string.Join(", ",
+            usedDestObjs.Select(o => o.name)));
+            
+       List<Transform> sortedByHeight = interactableObjs.Except(usedDestObjs)
+            .OrderBy(t => t.position.y).ToList();
+        Debug.LogFormat("StackingAgent.FixedUpdate: object sequence = {0}", string.Format("[{0}]", string.Join(",",
+            sortedByHeight.Select(t => string.Format("({0}, {1})", t.name, t.transform.position.y)))));
+
+        theme = sortedByHeight.First().gameObject;
 
         themeStartRotation = new Vector3(theme.transform.eulerAngles.x > 180.0f ? theme.transform.eulerAngles.x - 360.0f : theme.transform.eulerAngles.x,
             theme.transform.eulerAngles.y > 180.0f ? theme.transform.eulerAngles.y - 360.0f : theme.transform.eulerAngles.y,
