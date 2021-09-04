@@ -18,7 +18,7 @@
     </Args>
     <Body>
       <Subevent Value="grasp(x,y)" />
-      <Subevent Value="while(hold(x,y)^!at(y,z)):move(x,y,z,'VoxSimPlatform.Pathfinding.AStarSearch.PlanPath',loc(y),z,y)" />
+      <Subevent Value="while(hold(x,y)^!at(y,z)):move(x,y,z,'',loc(y),z,y)" />
       <Subevent Value="if(at(y,z)):ungrasp(x,y)" />
     </Body>
     <Scale />
