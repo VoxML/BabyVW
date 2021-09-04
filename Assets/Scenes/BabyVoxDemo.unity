@@ -539,8 +539,8 @@ MonoBehaviour:
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
-  postEventWaitTimerTime: 2000
-  timeScale: 2
+  postEventWaitTimerTime: 1000
+  timeScale: 100
 --- !u!4 &130105525
 Transform:
   m_ObjectHideFlags: 0
@@ -1054,8 +1054,9 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
+  circumventEventManager: 0
   episodeCount: 0
-  numTrials: 10
+  maxTrials: 0
   episodeNumTrials: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
@@ -1214,8 +1215,9 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
+  circumventEventManager: 0
   episodeCount: 0
-  numTrials: 10
+  maxTrials: 0
   episodeNumTrials: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
@@ -4446,7 +4448,6 @@ GameObject:
   - component: {fileID: 1759529658}
   - component: {fileID: 1759529657}
   - component: {fileID: 1759529656}
-  - component: {fileID: 1759529655}
   m_Layer: 0
   m_Name: VectorDDPGAgent
   m_TagString: Untagged
@@ -4454,20 +4455,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1759529655
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1759529654}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a5c9d521e5ef4759a8246a07d52221e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DecisionPeriod: 20
-  TakeActionsBetweenDecisions: 0
 --- !u!114 &1759529656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4489,8 +4476,9 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
+  circumventEventManager: 1
   episodeCount: 0
-  numTrials: 10
+  maxTrials: 10
   episodeNumTrials: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
@@ -4727,8 +4715,9 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
+  circumventEventManager: 0
   episodeCount: 0
-  numTrials: 10
+  maxTrials: 0
   episodeNumTrials: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0

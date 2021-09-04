@@ -32,7 +32,7 @@ public class ScenarioController : MonoBehaviour
     public int postEventWaitTimerTime;
     public float timeScale;
 
-    Timer postEventWaitTimer;
+    public Timer postEventWaitTimer;
 
     EventManager eventManager;
     VoxemeInit voxemeInit;
@@ -341,7 +341,6 @@ public class ScenarioController : MonoBehaviour
     {
         eventManager.ClearEvents();
     }
-
 
     public void SendToEventManager(string eventStr)
     {

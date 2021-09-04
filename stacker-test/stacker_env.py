@@ -50,6 +50,9 @@ class StackerEnv(gym.Env):
                 
     Episode Termination:
         All objects in the environment have been successfully stacked.
+        Agent has tried and failed a number of times equivalent to the
+        "Max Trials" value specified in the "StackingAgent" class in the
+        Unity Editor.
         Episode length is greater than the "Max Step" value specified in the
         "StackingAgent" class in the Unity Editor.
         Solved Requirements:
@@ -57,7 +60,7 @@ class StackerEnv(gym.Env):
         it was placed?" vs. "did the theme object fall down?" a successful policy
         should learn to produce action values that are closer to [0.0,0.0] in this
         action space. Considered solved when the average return is greater than or
-        equal to 0.75 over 100 trials, meaning a 3/4 probability of placing the theme
+        equal to 0.75 over 100 episodes, meaning a 3/4 probability of placing the theme
         object in a stable position on the first try, with no more than one failed
         try per episode.
     """
@@ -67,7 +70,7 @@ class StackerEnv(gym.Env):
         visual_observation=False,
         vector_observation=False):
         self._env = UnityEnvironment(environment_filename,0)
-        self.seed(42)
+        self.seed()
         self.resetting = False
         self.num_timesteps = 0
         
@@ -134,65 +137,22 @@ class StackerEnv(gym.Env):
     def step(self, action):
         self.num_timesteps += 1
         if self.resetting:
-            return
+            self.resetting = False
         
         if not np.allclose(action,self.last_action):
+            print("last_action:",self.last_action)
             print("action:",action)
         self._env.set_actions(self.behavior_name, ActionTuple(continuous=action.reshape((1,-1))))
         print("action shape:", action.reshape((1, -1)).shape)
         self._env.step()
         step_info, terminal_info = self._env.get_steps(self.behavior_name)
-        print("step_info",len(step_info))
-        
+
         obs = 1
-        
-        if self.dict_obs:
-            obs = {}
-                        
-            if step_info.obs[0].shape[0] > 0:
-                obs["visual_obs"] = step_info.obs[0]
-            else:
-                print("step_info.obs[0].shape = ", step_info.obs[0].shape, "setting visual_obs to black")
-                obs["visual_obs"] = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
-                
-            if step_info.obs[1].shape[0] > 0:
-                obs["vector_obs"] = step_info.obs[1]
-            else:
-                print("step_info.obs[1].shape = ", step_info.obs[1].shape, "setting vector_obs to 0")
-                obs["vector_obs"] = 0
-        else:
-            print(step_info.obs)
-            if step_info.obs[0].shape[0] > 0:
-                obs = step_info.obs[0]
-                
-                if self.visual_obs:
-                    obs = (obs*255).astype('float32')
-            else:
-                if self.visual_obs:
-                    print("step_info.obs[0].shape =", step_info.obs[0].shape[0], "setting visual_obs to black")
-                    obs = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
-                elif self.vector_obs:
-                    print("step_info.obs[0].shape =", step_info.obs[0].shape[0], "setting vector_obs to 0")
-                    obs = 0
-
-        if not np.allclose(action,self.last_action):
-            print("last observation:",self.last_obs)
-            print("observation:",obs)
-
-        if step_info.reward.shape[0] > 0:
-            reward = step_info.reward[0]
-            print("reward from step_info", reward)
-        else:
-            print("step_info.reward.shape =", step_info.reward.shape, "setting reward to 0")
-            reward = 0
-            
-        if not np.allclose(action,self.last_action):
-            print("reward:",reward)
 
         done = (len(terminal_info) != 0)
-
+        
         if done:
-            print("Terminated\n\tObservation: %s\tReward: %s\tInterrupted = %s" % (terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
+            print("Terminated\n\tObservation: %s\tReward: %s\tInterrupted: %s" % (terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
             
             if self.dict_obs:
                 obs["visual_obs"] = terminal_info.obs[0]
@@ -201,15 +161,61 @@ class StackerEnv(gym.Env):
                 obs = terminal_info.obs[0]
             reward = terminal_info.reward[0]
             self.last_action = np.array([-float('inf'),-float('inf')])
-            print("last_action", self.last_action)
         else:
             self.last_obs = obs
             self.last_action = action
+        
+            if self.dict_obs:
+                obs = {}
+                            
+                if step_info.obs[0].shape[0] > 0:
+                    obs["visual_obs"] = step_info.obs[0]
+                else:
+                    print("step_info.obs[0].shape = ", step_info.obs[0].shape, "setting visual_obs to black")
+                    obs["visual_obs"] = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
+                    
+                if step_info.obs[1].shape[0] > 0:
+                    obs["vector_obs"] = step_info.obs[1]
+                else:
+                    print("step_info.obs[1].shape = ", step_info.obs[1].shape, "setting vector_obs to 0")
+                    obs["vector_obs"] = 0
+            else:
+                if step_info.obs[0].shape[0] > 0:
+                    obs = step_info.obs[0]
+                    
+                    if self.visual_obs:
+                        obs = (obs*255).astype('float32')
+                else:
+                    if self.visual_obs:
+                        print("step_info.obs[0].shape =", step_info.obs[0].shape[0], "setting visual_obs to black")
+                        obs = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
+                    elif self.vector_obs:
+                        print("step_info.obs[0].shape =", step_info.obs[0].shape[0], "setting vector_obs to 0")
+                        obs = 0
+
+            print("Step\n\tObservation: %s\tReward: %s" % (step_info.obs,step_info.reward))
+            if not np.allclose(action,self.last_action):
+                print("last observation:",self.last_obs)
+
+            if step_info.reward.shape[0] > 0:
+                reward = step_info.reward[0]
+                print("reward from step_info", reward)
+            else:
+                print("step_info.reward.shape =", step_info.reward.shape, "setting reward to 0")
+                reward = 0
+                
+            if not np.allclose(action,self.last_action):
+                print("reward:",reward)
+
         info = {}
         return obs, reward, done, info
 
     def reset(self):
+        if self.resetting:
+            return
         print("Resetting")
+        #if self.num_timesteps > 10
+        #    assert False
         self.resetting = True
         self.seed()
         obs = self._env.reset()
