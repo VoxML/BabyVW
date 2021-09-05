@@ -7,6 +7,7 @@ using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using VoxSimPlatform.Global;
+using VoxSimPlatform.SpatialReasoning.QSR;
 using VoxSimPlatform.Vox;
 
 public class StackingAgent : Agent
@@ -17,8 +18,8 @@ public class StackingAgent : Agent
     public bool circumventEventManager;
 
     public int episodeCount;
-    public int maxTrials;
-    public int episodeNumTrials;
+    public int episodeMaxActions;
+    public int episodeNumActions;
 
     public float forceMultiplier;
 
@@ -225,7 +226,7 @@ public class StackingAgent : Agent
         {
             observation = ConstructObservation();
             noisyObservation = observation + (float)GaussianNoise(0, 0.1f);
-            Debug.LogFormat("StackingAgent.Update: Observation = {0}; Reward = {1}", observation, observation - lastObservation);
+            Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, observation - lastObservation);
             float reward = (observation - lastObservation) > 0 ? (observation - lastObservation) : (observation - lastObservation) - 1;
             AddReward(reward);
             episodeTotalReward += reward;
@@ -233,29 +234,27 @@ public class StackingAgent : Agent
 
             if (observation - lastObservation != 0)
             {
+                if (observation - lastObservation < 0)
+                {
+                    usedDestObjs = usedDestObjs.Take(usedDestObjs.Count-1 + (int)(observation - lastObservation)).ToList();
+                    Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
+                        usedDestObjs.Select(o => o.name)));
+                }
+
                 // figure out which is the new destination object
-                List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
+                List<Transform> sortedByHeight = interactableObjs.Where(t => SurfaceClear(t.gameObject)).OrderByDescending(t => t.position.y).ToList();
                 Debug.LogFormat("StackingAgent.Update: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
                     sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
 
-                GameObject newDest = destObj == null ? null : destObj;
-                if ((destObj == null) || (Mathf.Abs(sortedByHeight.First().position.y - destObj.transform.position.y) > Constants.EPSILON))
-                {
-                    newDest = sortedByHeight.First().gameObject;
-                }
-
-                if (newDest != destObj)
-                {
-                    if (observation - lastObservation < 0)
-                    {
-                        usedDestObjs = usedDestObjs.Take(usedDestObjs.Count + (int)(observation - lastObservation)).ToList();
-                        Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
-                            usedDestObjs.Select(o => o.name)));
-                    }
-                }
+                GameObject newDest = sortedByHeight.First().gameObject;
 
                 OnDestObjChanged(destObj, newDest);
                 destObj = newDest;
+
+                if (!usedDestObjs.Contains(destObj.transform))
+                { 
+                    usedDestObjs.Add(destObj.transform);
+                }
             }
 
             if (observation == interactableObjs.Count)
@@ -263,7 +262,7 @@ public class StackingAgent : Agent
                 Debug.LogFormat("StackingAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
                 endEpisode = true;
             }
-            else if (episodeNumTrials >= maxTrials)
+            else if (episodeNumActions >= episodeMaxActions)
             {
                 endEpisode = true;
             }
@@ -338,7 +337,7 @@ public class StackingAgent : Agent
             noisyVectors ? noisyObservation : observation,
             reward,
             episodeTotalReward,
-            episodeTotalReward/episodeNumTrials
+            episodeTotalReward/episodeNumActions
             };
         string csv = string.Join(",", arr);
         Debug.LogFormat("WriteOutSample: {0}", csv);
@@ -376,18 +375,21 @@ public class StackingAgent : Agent
             string.Join(",\n\t",
                 interactableObjs.Select(t => string.Format("{{{0}:{1}}}", t.name, GlobalHelper.VectorToParsable(t.position))).ToArray()));
 
-        List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
+        List<Transform> sortedByHeight = interactableObjs.Where(t => SurfaceClear(t.gameObject)).OrderByDescending(t => t.position.y).ToList();
         Debug.LogFormat("StackingAgent.ObjectsPlaced: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
                     sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
 
         GameObject newDest = destObj == null ? null : destObj;
-        //if ((destObj == null) || (Mathf.Abs(sortedByHeight.First().position.y - destObj.transform.position.y) > Constants.EPSILON))
-        //{
+
         newDest = sortedByHeight.First().gameObject;
-        //}
+
         OnDestObjChanged(destObj, newDest);
         destObj = newDest;
-        usedDestObjs.Add(destObj.transform);
+
+        if (!usedDestObjs.Contains(destObj.transform))
+        {
+            usedDestObjs.Add(destObj.transform);
+        }
 
         if (destObj != null)
         {
@@ -524,12 +526,12 @@ public class StackingAgent : Agent
     {
         GameObject theme = null;
 
-        Debug.LogFormat("StackingAgent.FixedUpdate: usedDestObjs = [{0}]", string.Join(", ",
+        Debug.LogFormat("StackingAgent.SelectThemeObject: usedDestObjs = [{0}]", string.Join(", ",
             usedDestObjs.Select(o => o.name)));
 
-        List<Transform> sortedByHeight = interactableObjs.Except(usedDestObjs)
+        List<Transform> sortedByHeight = interactableObjs.Except(usedDestObjs).Where(t => SurfaceClear(t.gameObject))
              .OrderBy(t => t.position.y).ToList();
-        Debug.LogFormat("StackingAgent.FixedUpdate: object sequence = {0}", string.Format("[{0}]", string.Join(",",
+        Debug.LogFormat("StackingAgent.SelectThemeObject: object sequence = {0}", string.Format("[{0}]", string.Join(",",
             sortedByHeight.Select(t => string.Format("({0}, {1})", t.name, t.transform.position.y)))));
 
         theme = sortedByHeight.First().gameObject;
@@ -552,6 +554,40 @@ public class StackingAgent : Agent
         int obs = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
 
         return obs;
+    }
+
+    protected bool SurfaceClear(GameObject obj)
+    {
+        bool surfaceClear = true;
+        List<GameObject> excludeChildren = obj.GetComponentsInChildren<Renderer>().Where(
+            o => (GlobalHelper.GetMostImmediateParentVoxeme(o.gameObject) != obj)).Select(o => o.gameObject).ToList();
+
+        Bounds objBounds = GlobalHelper.GetObjectWorldSize(obj, excludeChildren);
+        foreach (Transform otherObj in obj.transform)
+        {
+            if (otherObj.tag != "UnPhysic")
+            {
+                excludeChildren = otherObj.GetComponentsInChildren<Renderer>().Where(
+                    o => (GlobalHelper.GetMostImmediateParentVoxeme(o.gameObject) != otherObj.gameObject)).Select(o => o.gameObject).ToList();
+
+                Bounds otherBounds = GlobalHelper.GetObjectWorldSize(otherObj.gameObject, excludeChildren);
+                Region blockMax = new Region(new Vector3(objBounds.min.x, objBounds.max.y, objBounds.min.z),
+                    new Vector3(objBounds.max.x, objBounds.max.y, objBounds.max.z));
+                Region otherMin = new Region(new Vector3(otherBounds.min.x, objBounds.max.y, otherBounds.min.z),
+                    new Vector3(otherBounds.max.x, objBounds.max.y, otherBounds.max.z));
+                if ((QSR.Above(otherBounds, objBounds)) &&
+                    ((GlobalHelper.RegionOfIntersection(blockMax, otherMin, Constants.MajorAxis.Y).Area() / blockMax.Area()) >
+                     0.25f) &&
+                    (RCC8.EC(otherBounds, objBounds)))
+                {
+                    surfaceClear = false;
+                    break;
+                }
+            }
+        }
+
+        Debug.Log(string.Format("SurfaceClear({0}):{1}", obj.name, surfaceClear));
+        return surfaceClear;
     }
 
     public override void OnEpisodeBegin()
@@ -581,7 +617,7 @@ public class StackingAgent : Agent
         }
 
         episodeCount += 1;
-        episodeNumTrials = 0;
+        episodeNumActions = 0;
 
         Debug.LogFormat("StackingAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;

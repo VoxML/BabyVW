@@ -535,8 +535,9 @@ MonoBehaviour:
   interactableObjectTypes:
   - {fileID: 1242741016}
   - {fileID: 1242741016}
-  numTotalObjs: 2
-  numInteractableObjs: 2
+  - {fileID: 1242741016}
+  numTotalObjs: 3
+  numInteractableObjs: 3
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
   postEventWaitTimerTime: 1000

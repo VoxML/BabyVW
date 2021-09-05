@@ -113,7 +113,7 @@ public class ScenarioController : MonoBehaviour
         
         // create the pose event wait timer (do not start it) and
         //  and timer callback
-        postEventWaitTimer = new Timer(postEventWaitTimerTime/timeScale);
+        postEventWaitTimer = new Timer(postEventWaitTimerTime);
         postEventWaitTimer.Enabled = false;
         postEventWaitTimer.Elapsed += PostEventWaitComplete;
 
