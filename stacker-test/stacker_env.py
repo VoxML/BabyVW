@@ -199,7 +199,6 @@ class StackerEnv(gym.Env):
 
             if step_info.reward.shape[0] > 0:
                 reward = step_info.reward[0]
-                print("reward from step_info", reward)
             else:
                 print("step_info.reward.shape =", step_info.reward.shape, "setting reward to 0")
                 reward = 0

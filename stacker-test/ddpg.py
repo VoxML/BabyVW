@@ -6,16 +6,23 @@ from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckA
 from stacker_env import StackerEnv
 from stable_baselines3.common.monitor import Monitor
 import pandas as pd
-import argparse
+import argparse, textwrap
 
 def main():
-    parser = argparse.ArgumentParser(description='Stacker parameters. (Example usage: "python ddpg.py -b stacker -l cube_stacking_model -t 500 --train" OR "python ddpg.py -b stacker -t 50 --test")')
+    parser = argparse.ArgumentParser(description=textwrap.dedent('''
+        Stacker parameters.
+        Example usage:
+        \tTrain new model for 500 timesteps using vector observations only, and save the model in the "cube_stacking_model" directory: "python ddpg.py -b stacker -l cube_stacking_model -t 500 --train --vector_obs"
+        \tTest ddpg1 for 50 timesteps: "python ddpg.py -b stacker -m ddpg1 -t 50 --test"
+        \tLoad ddpg1, continue training for 100 timesteps, and save the result as "ddpg2": "python ddpg.py -b stacker -m ddpg1 -M ddpg2" -t 100 --train"
+        '''),formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--log_dir', '-l', metavar='LOGDIR', default='.', help='log directory')
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
     parser.add_argument('--total_timesteps', '-t', metavar='TOTALTIMESTEPS', default=500, help='total timesteps')
     parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='ddpg_saved', help='name of model to save/load')
-    parser.add_argument('--visual_obs', action='store_true', default=False, help='use visual observations')
-    parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations')
+    parser.add_argument('--new_model_name', '-M', metavar='NEWMODELNAME', default='ddpg_new_saved', help='name of new model to save if fine-tuning starting with another model')
+    parser.add_argument('--visual_obs', action='store_true', default=False, help='use visual observations (leave blank to use both)')
+    parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations (leave blank to use both)')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
     parser.add_argument('--test', action='store_true', default=False, help='test mode')
 
@@ -25,6 +32,7 @@ def main():
     tb_name = args.tb_name
     total_timesteps = int(args.total_timesteps)
     model_name = args.model_name
+    new_model_name = args.new_model_name
     visual_obs = args.visual_obs
     vector_obs = args.vector_obs
     train = args.train
@@ -49,20 +57,26 @@ def main():
     action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
     if train:
-        if visual_obs and vector_obs:
-            model = DDPG("MultiInputPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-        elif visual_obs:
-            model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-        elif vector_obs:
-            model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/", learning_starts=0)
+        if new_model_name is None:
+            if visual_obs and vector_obs:
+                model = DDPG("MultiInputPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
+            elif visual_obs:
+                model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
+            elif vector_obs:
+                model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/", learning_starts=0)
+        else:
+            model = DDPG.load(log_dir + "/" + model_name, env)
 
         model.learn(total_timesteps=total_timesteps)
 
         print("Done learning")
 
-        model.save(log_dir + "/" + model_name)
-
-        print("Model saved at", log_dir + "/" + model_name)
+        if new_model_name is None:
+            model.save(log_dir + "/" + model_name)
+            print("Model saved at", log_dir + "/" + model_name)
+        else:
+            model.save(log_dir + "/" + new_model_name)
+            print("Model saved at", log_dir + "/" + new_model_name)
 
     if test:
         model = DDPG.load(log_dir + "/" + model_name)
@@ -73,16 +87,18 @@ def main():
         obs = env.reset()
 
         i = 0
+        total_reward = 0
+        total_episodes = 0
         while True:
-            print("Testing %s" % i)
+            print("\nTesting %s" % i)
             print("obs:", obs)
             action, _states = model.predict(obs)
-            print("action:", action)
             last_obs = obs
-            obs, rewards, dones, info = env.step(action)
-            print("obs:", obs)
-            print(dones)
-            if dones:
+            obs, reward, done, info = env.step(action)
+            print("Reward: %s\t Done: %s" % (reward,done))
+            total_reward += reward
+            if done:
+                total_episodes += 1
                 env.reset()
                 
             if visual_obs and vector_obs:
@@ -90,14 +106,20 @@ def main():
                  not np.allclose(obs["vector_obs"], last_obs["vector_obs"]):
                     i += 1
             elif visual_obs:
-                if np.allclose(obs, last_obs):
+                if not np.allclose(obs, last_obs):
                     i += 1
             elif vector_obs:
-                if np.allclose(obs, last_obs):
+                if not np.allclose(obs, last_obs):
                     i += 1
                 
             if i == total_timesteps:
                 break
+                
+        print("\n===== Summary =====")
+        print("Tested for %s timesteps" % i)
+        print("\t%s episodes" % total_episodes)
+        print("\tTotal reward: %s" % total_reward)
+        print("\tMean reward per episode: %.4f" % (float(total_reward)/float(total_episodes),))
 
 if __name__ == "__main__":
     main()
