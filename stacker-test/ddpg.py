@@ -20,7 +20,7 @@ def main():
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
     parser.add_argument('--total_timesteps', '-t', metavar='TOTALTIMESTEPS', default=500, help='total timesteps')
     parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='ddpg_saved', help='name of model to save/load')
-    parser.add_argument('--new_model_name', '-M', metavar='NEWMODELNAME', default='ddpg_new_saved', help='name of new model to save if fine-tuning starting with another model')
+    parser.add_argument('--new_model_name', '-M', metavar='NEWMODELNAME', default=None, help='name of new model to save if fine-tuning starting with another model')
     parser.add_argument('--visual_obs', action='store_true', default=False, help='use visual observations (leave blank to use both)')
     parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations (leave blank to use both)')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
@@ -87,7 +87,9 @@ def main():
         obs = env.reset()
 
         i = 0
+        ep_reward = 0
         total_reward = 0
+        max_reward = 0
         total_episodes = 0
         while True:
             print("\nTesting %s" % i)
@@ -97,8 +99,11 @@ def main():
             obs, reward, done, info = env.step(action)
             print("Reward: %s\t Done: %s" % (reward,done))
             total_reward += reward
+            ep_reward += reward
             if done:
+                max_reward = ep_reward if ep_reward > max_reward else max_reward
                 total_episodes += 1
+                ep_reward = 0
                 env.reset()
                 
             if visual_obs and vector_obs:
@@ -119,6 +124,7 @@ def main():
         print("Tested for %s timesteps" % i)
         print("\t%s episodes" % total_episodes)
         print("\tTotal reward: %s" % total_reward)
+        print("\tMax reward achieved: %s" % max_reward)
         print("\tMean reward per episode: %.4f" % (float(total_reward)/float(total_episodes),))
 
 if __name__ == "__main__":
