@@ -5,6 +5,7 @@ using System.Linq;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using VoxSimPlatform.CogPhysics;
 using VoxSimPlatform.Global;
 using VoxSimPlatform.Vox;
 
@@ -62,7 +63,7 @@ public class ContinuousStackingAgent : StackingAgent
                         targetPos = new Vector3(targetPos.x, targetPos.y - (closestPoint.y - inputPoint.y), targetPos.z);
                     }
 
-                    if (!circumventEventManager)
+                    if (!scenarioController.circumventEventManager)
                     {
                         themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
                         PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
@@ -73,6 +74,7 @@ public class ContinuousStackingAgent : StackingAgent
                     }
                     else
                     {
+                        themeObj.GetComponent<Rigging>().ActivatePhysics(false);
                         themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
                         scenarioController.OnEventExecuting(null, null);
                     }

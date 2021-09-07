@@ -26,6 +26,7 @@ public class ScenarioController : MonoBehaviour
     public int numInteractableObjs;
     public bool instantiateObjectTypesInOrder;
     public bool attemptUniqueAttributes;
+    public bool circumventEventManager;
 
     // editable field: how long do we wait after an event is completed
     //  to assess the "post-event" consequences (e.g., did our structure fall?)

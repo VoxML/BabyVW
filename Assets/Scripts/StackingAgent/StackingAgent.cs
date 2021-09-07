@@ -6,6 +6,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using VoxSimPlatform.CogPhysics;
 using VoxSimPlatform.Global;
 using VoxSimPlatform.SpatialReasoning.QSR;
 using VoxSimPlatform.Vox;
@@ -15,7 +16,6 @@ public class StackingAgent : Agent
     public GameObject themeObj, destObj;
     public int observationSize;
     public bool useVectorObservations, noisyVectors;
-    public bool circumventEventManager;
 
     public int episodeCount;
     public int episodeMaxActions;
@@ -205,7 +205,7 @@ public class StackingAgent : Agent
             RequestDecision();
         }
 
-        if (circumventEventManager)
+        if (scenarioController.circumventEventManager)
         {
             if (themeObj != null)
             {
@@ -214,6 +214,7 @@ public class StackingAgent : Agent
                 {
                     if (executingEvent && !scenarioController.postEventWaitTimer.Enabled)
                     {
+                        themeObj.GetComponent<Rigging>().ActivatePhysics(true);
                         scenarioController.OnEventCompleted(null, null);
                         // start the wait timer
                         scenarioController.postEventWaitTimer.Enabled = true;

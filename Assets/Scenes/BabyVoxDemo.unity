@@ -535,10 +535,11 @@ MonoBehaviour:
   interactableObjectTypes:
   - {fileID: 1242741016}
   - {fileID: 1242741016}
-  numTotalObjs: 4
-  numInteractableObjs: 4
+  numTotalObjs: 2
+  numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
+  circumventEventManager: 1
   postEventWaitTimerTime: 1000
   timeScale: 100
 --- !u!4 &130105525
@@ -1054,7 +1055,6 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
-  circumventEventManager: 0
   episodeCount: 0
   episodeMaxActions: 0
   episodeNumActions: 0
@@ -1200,7 +1200,6 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 0
   noisyVectors: 1
-  circumventEventManager: 1
   episodeCount: 0
   episodeMaxActions: 10
   episodeNumActions: 0
@@ -4461,7 +4460,6 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
-  circumventEventManager: 1
   episodeCount: 0
   episodeMaxActions: 10
   episodeNumActions: 0
@@ -4700,7 +4698,6 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
-  circumventEventManager: 0
   episodeCount: 0
   episodeMaxActions: 0
   episodeNumActions: 0
