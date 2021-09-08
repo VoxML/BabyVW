@@ -539,7 +539,7 @@ MonoBehaviour:
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
-  circumventEventManager: 1
+  circumventEventManager: 0
   postEventWaitTimerTime: 1000
   timeScale: 100
 --- !u!4 &130105525
@@ -1055,6 +1055,7 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
+  useRelations: 0
   episodeCount: 0
   episodeMaxActions: 0
   episodeNumActions: 0
@@ -1200,6 +1201,7 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 0
   noisyVectors: 1
+  useRelations: 0
   episodeCount: 0
   episodeMaxActions: 10
   episodeNumActions: 0
@@ -4457,9 +4459,10 @@ MonoBehaviour:
   MaxStep: 10000
   themeObj: {fileID: 0}
   destObj: {fileID: 0}
-  observationSize: 1
+  observationSize: 2
   useVectorObservations: 1
-  noisyVectors: 1
+  noisyVectors: 0
+  useRelations: 1
   episodeCount: 0
   episodeMaxActions: 10
   episodeNumActions: 0
@@ -4480,7 +4483,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 2
     NumStackedVectorObservations: 1
     VectorActionSize: 02000000
     VectorActionDescriptions: []
@@ -4698,6 +4701,7 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 1
+  useRelations: 0
   episodeCount: 0
   episodeMaxActions: 0
   episodeNumActions: 0

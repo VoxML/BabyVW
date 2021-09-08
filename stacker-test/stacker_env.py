@@ -94,10 +94,17 @@ class StackerEnv(gym.Env):
         
         self.vector_obs_space = spaces.Box(
             0.0,
-            4.0,
+            5.0,
             dtype=np.float32,
             shape=(1,)
         )
+        
+        #self.vector_obs_space = spaces.Box(
+        #    np.array([0.0,0.0]),
+        #    np.array([4.0,5.0]),
+        #    dtype=np.float32,
+        #    shape=(2,)
+        #)
         
         if self.dict_obs:
             self.image_space = self.normalized_image_space

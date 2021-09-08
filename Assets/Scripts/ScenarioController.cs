@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
@@ -183,7 +184,7 @@ public class ScenarioController : MonoBehaviour
                 if (instantiateObjectTypesInOrder)
                 {
                     t = interactableObjectTypes[i % interactableObjectTypes.Count];
-                    Debug.Log(string.Format("Creating new {0}", t.name));
+                    Debug.Log(string.Format("ScenarioController.PlaceRandomly: Creating new {0}", t.name));
                 }
                 else
                 {
@@ -193,7 +194,7 @@ public class ScenarioController : MonoBehaviour
                         t = objectTypes.GetChild(RandomHelper.RandomInt(0, objectTypes.childCount - 1,
                             (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive)));
                     } while (!interactableObjectTypes.Contains(t));
-                    Debug.Log(string.Format("Creating new {0}", t.name));
+                    Debug.Log(string.Format("ScenarioController.PlaceRandomly: Creating new {0}", t.name));
                 }
 
                 // find a clear coordinate on the play surface within the interactable radius
@@ -273,7 +274,7 @@ public class ScenarioController : MonoBehaviour
             // choose a random object type
             Transform t = objectTypes.GetChild(RandomHelper.RandomInt(0, objectTypes.childCount - 1,
                 (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive)));
-            Debug.Log(string.Format("Creating new {0}", t.name));
+            Debug.Log(string.Format("ScenarioController.PlaceRandomly: Creating new {0}", t.name));
 
             // find a clear coordinate on the play surface beyond the interactable radius
             Vector3 coord;
@@ -349,9 +350,30 @@ public class ScenarioController : MonoBehaviour
         eventManager.InsertEvent(eventStr, 1);
     }
 
+    public List<string> GetRelations(GameObject obj1, GameObject obj2)
+    {
+        List<string> relations = new List<string>();
+
+        List<GameObject> pair = new List<GameObject>(new GameObject[] { obj1, obj2 });
+
+        foreach (DictionaryEntry dictEntry in relationTracker.relations)
+        {
+            if (((List<GameObject>)dictEntry.Key).SequenceEqual(pair))
+            {
+                string[] rels = (relationTracker.relations[dictEntry.Key] as string).Split(',');
+                relations.AddRange(rels);
+            }
+        }
+
+        Debug.LogFormat("ScenarioController.GetRelations: Got relations [{0}] between {1} and {2}",
+            string.Join(", ", relations.ToArray()), obj1.name, obj2.name);
+
+        return relations;
+    }
+
     void ExecutingEvent(object sender, EventArgs e)
     {
-        Debug.LogFormat("ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
+        Debug.LogFormat("ScenarioController.ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
         if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
         {
             // save the "before event" image
@@ -365,7 +387,7 @@ public class ScenarioController : MonoBehaviour
     {
         OnEventCompleted(this, null);
 
-        Debug.LogFormat("CompletedEvent: {0}", ((EventManagerArgs)e).EventString);
+        Debug.LogFormat("ScenarioController.CompletedEvent: {0}", ((EventManagerArgs)e).EventString);
 
         // start the wait timer
         postEventWaitTimer.Enabled = true;

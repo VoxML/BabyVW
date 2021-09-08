@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Unity.MLAgents;
-using Unity.MLAgents.Sensors;
+﻿using System.Linq;
 using UnityEngine;
 using VoxSimPlatform.CogPhysics;
 using VoxSimPlatform.Global;

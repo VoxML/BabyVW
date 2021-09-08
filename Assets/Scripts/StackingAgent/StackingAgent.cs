@@ -16,6 +16,8 @@ public class StackingAgent : Agent
     public GameObject themeObj, destObj;
     public int observationSize;
     public bool useVectorObservations, noisyVectors;
+    public bool useHeight;
+    public bool useRelations;
 
     public int episodeCount;
     public int episodeMaxActions;
@@ -43,7 +45,7 @@ public class StackingAgent : Agent
 
     float episodeTotalReward;
 
-    DateTime episodeBeginTime,episodeEndTime;
+    DateTime episodeBeginTime, episodeEndTime;
     DateTime trialBeginTime, trialEndTime;
 
     bool _objectsPlaced = false;
@@ -158,7 +160,8 @@ public class StackingAgent : Agent
         }
     }
 
-    float observation, lastObservation, noisyObservation;
+    List<float> observation, lastObservation, noisyObservation;
+    int curNumObjsStacked, lastNumObjsStacked;
 
     void Start()
     {
@@ -225,19 +228,19 @@ public class StackingAgent : Agent
 
         if (constructObservation)
         {
-            observation = ConstructObservation();
-            noisyObservation = observation + (float)GaussianNoise(0, 0.1f);
-            Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, observation - lastObservation);
-            float reward = (observation - lastObservation) > 0 ? (observation - lastObservation) : (observation - lastObservation) - 1;
+            observation = ConstructObservation().Select(o => (float)o).ToList();
+            noisyObservation = observation.Select(o => o + (float)GaussianNoise(0, 0.1f)).ToList();
+            float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? (curNumObjsStacked - lastNumObjsStacked) : (curNumObjsStacked - lastNumObjsStacked) - 1;
+            Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, reward);
             AddReward(reward);
             episodeTotalReward += reward;
             WriteOutSample(themeObj.transform, destObj.transform, lastAction, reward);
 
-            if (observation - lastObservation != 0)
+            if (curNumObjsStacked - lastNumObjsStacked != 0.0f)
             {
-                if (observation - lastObservation < 0)
+                if (curNumObjsStacked - lastNumObjsStacked < 0.0f)
                 {
-                    usedDestObjs = usedDestObjs.Take(usedDestObjs.Count-1 + (int)(observation - lastObservation)).ToList();
+                    usedDestObjs = usedDestObjs.Take(usedDestObjs.Count - 1 + (int)(curNumObjsStacked - lastNumObjsStacked)).ToList();
                     Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
                         usedDestObjs.Select(o => o.name)));
                 }
@@ -253,12 +256,12 @@ public class StackingAgent : Agent
                 destObj = newDest;
 
                 if (!usedDestObjs.Contains(destObj.transform))
-                { 
+                {
                     usedDestObjs.Add(destObj.transform);
                 }
             }
 
-            if (observation == interactableObjs.Count)
+            if (curNumObjsStacked == interactableObjs.Count)
             {
                 Debug.LogFormat("StackingAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
                 endEpisode = true;
@@ -291,9 +294,14 @@ public class StackingAgent : Agent
 
             if (useVectorObservations)
             {
-                sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+                for (int i = 0; i < observation.Count; i++)
+                {
+                    sensor.AddObservation(noisyVectors ? noisyObservation[i] : observation[i]);
+                }
                 Debug.LogFormat("StackingAgent.Update: Collecting {0} observation(s) - [{1}]",
-                    sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+                    sensor.ObservationSize(), noisyVectors ?
+                    string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
+                    string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
                 CollectObservations(sensor);
             }
 
@@ -326,20 +334,30 @@ public class StackingAgent : Agent
         float angleOffsetStart = Vector3.Angle(Vector3.up, Quaternion.Euler(themeStartRotation) * Vector3.up);
         float angleOffsetEnd = Vector3.Angle(Vector3.up, themeTransform.up);
 
-        float[] arr = new float[] {
+        float[] arr1 = new float[] {
             episodeCount,
             objNameToIntDict[themeTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
             objNameToIntDict[destTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
             themeStartRotation.x * Mathf.Deg2Rad, themeStartRotation.y * Mathf.Deg2Rad, themeStartRotation.z * Mathf.Deg2Rad,
-            angleOffsetStart * Mathf.Deg2Rad,
-            action[0], action[1],
+            angleOffsetStart * Mathf.Deg2Rad
+            };
+
+        float[] arr2 = action;
+
+        float[] arr3 = new float[] {
             themeEndRotation.x * Mathf.Deg2Rad, themeEndRotation.y * Mathf.Deg2Rad, themeEndRotation.z * Mathf.Deg2Rad,
-            angleOffsetEnd * Mathf.Deg2Rad,
-            noisyVectors ? noisyObservation : observation,
+            angleOffsetEnd * Mathf.Deg2Rad
+            };
+
+        float[] arr4 = noisyVectors ? noisyObservation.ToArray() : observation.ToArray();
+
+        float[] arr5 = new float[] {
             reward,
             episodeTotalReward,
             episodeTotalReward/episodeNumActions
             };
+
+        float[] arr = arr1.Concat(arr2).Concat(arr3).Concat(arr4).Concat(arr5).ToArray();
         string csv = string.Join(",", arr);
         Debug.LogFormat("WriteOutSample: {0}", csv);
 
@@ -422,7 +440,7 @@ public class StackingAgent : Agent
         if (themeVox != null)
         {
             string[] axes = themeVox.voxml.Type.RotatSym.Split(',');
-             
+
             if ((axes.Length == 0) || (axes.Length == 3))
             {
                 force = new Vector3((float)GaussianNoise(0, 1), 0,
@@ -513,6 +531,7 @@ public class StackingAgent : Agent
     {
         if (executingEvent)
         {
+            lastNumObjsStacked = curNumObjsStacked;
             lastObservation = observation;
             resolvePhysics = true;
             executingEvent = false;
@@ -544,15 +563,42 @@ public class StackingAgent : Agent
         return theme;
     }
 
-    protected int ConstructObservation()
+    protected List<int> ConstructObservation()
     {
+        Dictionary<string, int> relToIntDict = new Dictionary<string, int>()
+        {
+            { "support", 1 },
+            { "left", 2 },
+            { "right", 3 },
+            { "in_front", 4 },
+            { "behind", 5 }
+        };
+
         // sort objects by height
         List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
         Debug.LogFormat("StackingAgent.ConstructObservation: [{0}]", string.Join(",", sortedByHeight.Select(o => o.position.y).ToList()));
 
         // take the topmost object and round its y-coord up to nearest int
         //  multiply by 10 (blocks are .1 x .1 x .1)
-        int obs = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
+        curNumObjsStacked = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
+
+        List<int> obs = new List<int>();
+        if (useHeight)
+        {
+            obs.Add(curNumObjsStacked);
+        }
+
+        if (useRelations)
+        {
+            List<string> rels = scenarioController.GetRelations(destObj, themeObj);
+            foreach (string r in rels)
+            {
+                if (relToIntDict.Keys.Contains(r))
+                {
+                    obs.Add(relToIntDict[r]);
+                }
+            }
+        }
 
         return obs;
     }
@@ -623,13 +669,33 @@ public class StackingAgent : Agent
         Debug.LogFormat("StackingAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;
 
+        curNumObjsStacked = 1;
+
         if (useVectorObservations)
         {
-            observation = 1;
-            noisyObservation = observation + (float)GaussianNoise(0, 0.1f);
-            sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+            observation = new List<float>();
+
+            if (useHeight)
+            {
+                observation.Add(1);
+            }
+
+            if (useRelations)
+            {
+                observation.Add(0);
+            }
+
+            noisyObservation = observation.Select(o => o == 0 ? o : o + (float)GaussianNoise(0, 0.1f)).ToList();
+
+            for (int i = 0; i < observation.Count; i++)
+            {
+                sensor.AddObservation(noisyVectors ? noisyObservation[i] : observation[i]);
+            }
+
             Debug.LogFormat("StackingAgent.OnEpisodeBegin: Collecting {0} observation(s) - [{1}]",
-                sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+                sensor.ObservationSize(), noisyVectors ?
+                string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
+                string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
         }
 
         scenarioController.PlaceRandomly(scenarioController.surface);
@@ -661,18 +727,28 @@ public class StackingAgent : Agent
             {
                 if (useVectorObservations)
                 {
-                    sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+                    for (int i = 0; i < observation.Count; i++)
+                    {
+                        sensor.AddObservation(noisyVectors ? noisyObservation[i] : observation[i]);
+                    }
                     Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                        sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+                        sensor.ObservationSize(), noisyVectors ?
+                        string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
+                        string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
                 }
             }
             else
             {
                 if (useVectorObservations)
                 {
-                    sensor.AddObservation(lastObservation);
+                    for (int i = 0; i < lastObservation.Count; i++)
+                    {
+                        sensor.AddObservation(lastObservation[i]);
+                    }
                     Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                        sensor.ObservationSize(), lastObservation);
+                        sensor.ObservationSize(), noisyVectors ?
+                        string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
+                        string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
                 }
             }
 
@@ -684,9 +760,14 @@ public class StackingAgent : Agent
             {
                 // if the episode has terminated, return the last observation
                 //  (i.e., the observation at the final state)
-                sensor.AddObservation(noisyVectors ? noisyObservation : observation);
+                for (int i = 0; i < observation.Count; i++)
+                {
+                    sensor.AddObservation(noisyVectors ? noisyObservation[i] : observation[i]);
+                }
                 Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                    sensor.ObservationSize(), noisyVectors ? noisyObservation : observation);
+                    sensor.ObservationSize(), noisyVectors ?
+                    string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
+                    string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
             }
         }
     }
