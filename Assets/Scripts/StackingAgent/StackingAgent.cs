@@ -18,6 +18,7 @@ public class StackingAgent : Agent
     public bool useVectorObservations, noisyVectors;
     public bool useHeight;
     public bool useRelations;
+    public bool useCenterOfGravity;
 
     public int episodeCount;
     public int episodeMaxActions;
@@ -162,6 +163,7 @@ public class StackingAgent : Agent
 
     List<float> observation, lastObservation, noisyObservation;
     int curNumObjsStacked, lastNumObjsStacked;
+    Vector2 centerOfGravity;
 
     void Start()
     {
@@ -185,6 +187,7 @@ public class StackingAgent : Agent
             scenarioController.squareFOV = GetComponent<CameraSensorComponent>() != null;
             scenarioController.ObjectsInited += ObjectsPlaced;
             scenarioController.EventExecuting += ExecutingEvent;
+            scenarioController.EventCompleted += CalcCenterOfGravity;
             scenarioController.EventCompleted += ApplyForce;
             scenarioController.PostEventWaitCompleted += MakeDecisionRequest;
             scenarioController.PostEventWaitCompleted += ResultObserved;
@@ -429,6 +432,15 @@ public class StackingAgent : Agent
         }
     }
 
+    public void CalcCenterOfGravity(object sender, EventArgs e)
+    {
+        Bounds combinedBounds = GlobalHelper.GetObjectWorldSize(usedDestObjs.Select(t => t.gameObject).Append(themeObj).ToList());
+        centerOfGravity = new Vector2(combinedBounds.center.x, combinedBounds.center.z) -
+            new Vector2(usedDestObjs.First().position.x, usedDestObjs.First().position.z);
+
+        Debug.LogFormat("StackingAgent.CalcCenterOfGravity: <{0};{1}>", centerOfGravity.x, centerOfGravity.y);
+    }
+
     public void ApplyForce(object sender, EventArgs e)
     {
         // Fetch the Rigidbody from the GameObject
@@ -563,7 +575,7 @@ public class StackingAgent : Agent
         return theme;
     }
 
-    protected List<int> ConstructObservation()
+    protected List<float> ConstructObservation()
     {
         Dictionary<string, int> relToIntDict = new Dictionary<string, int>()
         {
@@ -582,7 +594,7 @@ public class StackingAgent : Agent
         //  multiply by 10 (blocks are .1 x .1 x .1)
         curNumObjsStacked = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
 
-        List<int> obs = new List<int>();
+        List<float> obs = new List<float>();
         if (useHeight)
         {
             obs.Add(curNumObjsStacked);
@@ -591,13 +603,26 @@ public class StackingAgent : Agent
         if (useRelations)
         {
             List<string> rels = scenarioController.GetRelations(destObj, themeObj);
-            foreach (string r in rels)
+            if (rels.Count == 0)
             {
-                if (relToIntDict.Keys.Contains(r))
+                obs.Add(0);
+            }
+            else
+            { 
+                foreach (string r in rels)
                 {
-                    obs.Add(relToIntDict[r]);
+                    if (relToIntDict.Keys.Contains(r))
+                    {
+                        obs.Add(relToIntDict[r]);
+                    }
                 }
             }
+        }
+
+        if (useCenterOfGravity)
+        {
+            obs.Add(centerOfGravity.x);
+            obs.Add(centerOfGravity.y);
         }
 
         return obs;
@@ -683,6 +708,11 @@ public class StackingAgent : Agent
             if (useRelations)
             {
                 observation.Add(0);
+            }
+
+            if (useCenterOfGravity)
+            {
+                observation.AddRange(new float[]{ 0, 0 });
             }
 
             noisyObservation = observation.Select(o => o == 0 ? o : o + (float)GaussianNoise(0, 0.1f)).ToList();

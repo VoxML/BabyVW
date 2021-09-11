@@ -94,7 +94,7 @@ class StackerEnv(gym.Env):
         
         self.vector_obs_space = spaces.Box(
             0.0,
-            5.0,
+            4.0,
             dtype=np.float32,
             shape=(1,)
         )
@@ -104,6 +104,27 @@ class StackerEnv(gym.Env):
         #    np.array([4.0,5.0]),
         #    dtype=np.float32,
         #    shape=(2,)
+        #)
+        
+        #self.vector_obs_space = spaces.Box(
+        #    np.array([-1.0,-1.0]),
+        #    np.array([1.0,1.0]),
+        #    dtype=np.float32,
+        #    shape=(2,)
+        #)
+        
+        #self.vector_obs_space = spaces.Box(
+        #    np.array([0.0,-1.0,-1.0]),
+        #    np.array([5.0,1.0,1.0]),
+        #    dtype=np.float32,
+        #    shape=(3,)
+        #)
+        
+        #self.vector_obs_space = spaces.Box(
+        #    np.array([0.0,0.0,-1.0,-1.0]),
+        #    np.array([4.0,5.0,1.0,1.0]),
+        #    dtype=np.float32,
+        #    shape=(4,)
         #)
         
         if self.dict_obs:
