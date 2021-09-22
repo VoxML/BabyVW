@@ -1,5 +1,6 @@
 import numpy as np
 from stable_baselines3 import DDPG
+from stable_baselines3 import TD3
 import os
 import matplotlib.pyplot as plt
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -7,6 +8,10 @@ from stacker_env import StackerEnv
 from stable_baselines3.common.monitor import Monitor
 import pandas as pd
 import argparse, textwrap
+from stable_baselines3.common.env_util import make_vec_env
+
+# Parallel environments
+
 
 def main():
     parser = argparse.ArgumentParser(description=textwrap.dedent('''
@@ -45,7 +50,8 @@ def main():
     os.makedirs(log_dir, exist_ok=True)
 
     env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs)
-    env = Monitor(env, log_dir)
+
+    #env = Monitor(env, log_dir)
 
     print("observation_space:", env.observation_space.shape)
     print("action_space_high:", env.action_space.high)
@@ -63,7 +69,7 @@ def main():
             elif visual_obs:
                 model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
             elif vector_obs:
-                model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/", learning_starts=0)
+              model = TD3("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         else:
             model = DDPG.load(log_dir + "/" + model_name, env)
 
