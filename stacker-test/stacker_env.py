@@ -59,16 +59,15 @@ class StackerEnv(gym.Env):
         Because the reward is contructed in terms of "did the theme object stay where
         it was placed?" vs. "did the theme object fall down?" a successful policy
         should learn to produce action values that are closer to [0.0,0.0] in this
-        action space. Considered solved when the average return is greater than or
-        equal to 0.75 over 100 episodes, meaning a 3/4 probability of placing the theme
-        object in a stable position on the first try, with no more than one failed
-        try per episode.
+        action space. Considered solved when the average return is N-1 over 100
+        episodes, where N is the number of interactable objects in the environment.
     """
 
     def __init__(self,
         environment_filename=None,
         visual_observation=False,
-        vector_observation=False):
+        vector_observation=False,
+        priors=[]):
         self._env = UnityEnvironment(environment_filename,0)
         self.seed()
         self.resetting = False
@@ -92,61 +91,72 @@ class StackerEnv(gym.Env):
             shape=(84, 84, 3)
         )
         
+        max_height = 4
+        num_relations = 5
+                
         # height only
-        #self.vector_obs_space = spaces.Box(
-        #    0.0,
-        #    4.0,
-        #    dtype=np.float32,
-        #    shape=(1,)
-        #)
+        if priors == ['HGT']:
+            self.vector_obs_space = spaces.Box(
+                0.0,
+                float(height_max),
+                dtype=np.float32,
+                shape=(1,)
+            )
         
         # relations only
-        #self.vector_obs_space = spaces.Box(
-        #    0.0,
-        #    5.0,
-        #    dtype=np.float32,
-        #    shape=(1,)
-        #)
+        if priors == ['REL']:
+            self.vector_obs_space = spaces.Box(
+                0.0,
+                float(num_relations),
+                dtype=np.float32,
+                shape=(1,)
+            )
         
         # CoG only
-        #self.vector_obs_space = spaces.Box(
-        #    np.array([-1.0,-1.0]),
-        #    np.array([1.0,1.0]),
-        #    dtype=np.float32,
-        #    shape=(2,)
-        #)
+        if priors == ['COG']:
+            self.vector_obs_space = spaces.Box(
+                np.array([-1.0,-1.0]),
+                np.array([1.0,1.0]),
+                dtype=np.float32,
+                shape=(2,)
+            )
         
         # height and relations
-        #self.vector_obs_space = spaces.Box(
-        #    np.array([0.0,0.0]),
-        #    np.array([4.0,5.0]),
-        #    dtype=np.float32,
-        #    shape=(2,)
-        #)
+        if priors == ['HGT','REL']:
+            self.vector_obs_space = spaces.Box(
+                np.array([0.0,0.0]),
+                np.array([float(max_height),float(num_relations)]),
+                dtype=np.float32,
+                shape=(2,)
+            )
         
         # height and CoG
-        self.vector_obs_space = spaces.Box(
-            np.array([0.0,-1.0,-1.0]),
-            np.array([4.0,1.0,1.0]),
-            dtype=np.float32,
-            shape=(3,)
-        )
+        if priors == ['COG','HGT']:
+            print(priors)
+            self.vector_obs_space = spaces.Box(
+                np.array([0.0,-1.0,-1.0]),
+                np.array([float(max_height),1.0,1.0]),
+                dtype=np.float32,
+                shape=(3,)
+            )
         
         # relations and CoG
-        #self.vector_obs_space = spaces.Box(
-        #    np.array([0.0,-1.0,-1.0]),
-        #    np.array([5.0,1.0,1.0]),
-        #    dtype=np.float32,
-        #    shape=(3,)
-        #)
+        if priors == ['COG','REL']:
+            self.vector_obs_space = spaces.Box(
+                np.array([0.0,-1.0,-1.0]),
+                np.array([float(num_relations),1.0,1.0]),
+                dtype=np.float32,
+                shape=(3,)
+            )
         
         # all
-        #self.vector_obs_space = spaces.Box(
-        #    np.array([0.0,0.0,-1.0,-1.0]),
-        #    np.array([4.0,5.0,1.0,1.0]),
-        #    dtype=np.float32,
-        #    shape=(4,)
-        #)
+        if priors == ['COG','HGT','REL']:
+            self.vector_obs_space = spaces.Box(
+                np.array([0.0,0.0,-1.0,-1.0]),
+                np.array([float(max_height),float(num_relations),1.0,1.0]),
+                dtype=np.float32,
+                shape=(4,)
+            )
         
         if self.dict_obs:
             self.image_space = self.normalized_image_space
@@ -201,7 +211,7 @@ class StackerEnv(gym.Env):
         done = (len(terminal_info) != 0)
         
         if done:
-            print("Terminated\n\tObservation: %s\tReward: %s\tInterrupted: %s" % (terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
+            print("Step %s\nTerminated\n\tObservation: %s\tReward: %s\tInterrupted: %s" % (self.num_timesteps,terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
             
             if self.dict_obs:
                 obs["visual_obs"] = terminal_info.obs[0]
@@ -242,7 +252,7 @@ class StackerEnv(gym.Env):
                         print("step_info.obs[0].shape =", step_info.obs[0].shape[0], "setting vector_obs to 0")
                         obs = 0
 
-            print("Step\n\tObservation: %s\tReward: %s" % (step_info.obs,step_info.reward))
+            print("Step %s\n\tObservation: %s\tReward: %s" % (self.num_timesteps,step_info.obs,step_info.reward))
             if not np.allclose(action,self.last_action):
                 print("last observation:",self.last_obs)
 

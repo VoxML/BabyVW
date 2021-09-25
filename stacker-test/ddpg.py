@@ -1,6 +1,5 @@
 import numpy as np
 from stable_baselines3 import DDPG
-from stable_baselines3 import TD3
 import os
 import matplotlib.pyplot as plt
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -18,8 +17,8 @@ def main():
         Stacker parameters.
         Example usage:
         \tTrain new model for 500 timesteps using vector observations only, and save the model in the "cube_stacking_model" directory: "python ddpg.py -b stacker -l cube_stacking_model -t 500 --train --vector_obs"
-        \tTest ddpg1 for 50 timesteps: "python ddpg.py -b stacker -m ddpg1 -t 50 --test"
-        \tLoad ddpg1, continue training for 100 timesteps, and save the result as "ddpg2": "python ddpg.py -b stacker -m ddpg1 -M ddpg2" -t 100 --train"
+        \tTest ddpg_1 for 50 timesteps: "python ddpg.py -b stacker -m ddpg_1 -t 50 --test"
+        \tLoad ddpg_1, continue training for 100 timesteps, and save the result as "ddpg_2": "python ddpg.py -b stacker -m ddpg_1 -M ddpg_2" -t 100 --train"
         '''),formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--log_dir', '-l', metavar='LOGDIR', default='.', help='log directory')
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
@@ -28,6 +27,7 @@ def main():
     parser.add_argument('--new_model_name', '-M', metavar='NEWMODELNAME', default=None, help='name of new model to save if fine-tuning starting with another model')
     parser.add_argument('--visual_obs', action='store_true', default=False, help='use visual observations (leave blank to use both)')
     parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations (leave blank to use both)')
+    parser.add_argument('--priors', '-p', metavar='PRIORS', type=str, nargs='+', help='set of priors to use (one required): HGT = height; REL = relations; COG = center of gravity')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
     parser.add_argument('--test', action='store_true', default=False, help='test mode')
 
@@ -38,6 +38,7 @@ def main():
     total_timesteps = int(args.total_timesteps)
     model_name = args.model_name
     new_model_name = args.new_model_name
+    priors = sorted(args.priors)
     visual_obs = args.visual_obs
     vector_obs = args.vector_obs
     train = args.train
@@ -49,7 +50,7 @@ def main():
     
     os.makedirs(log_dir, exist_ok=True)
 
-    env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs)
+    env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs,priors=priors)
 
     #env = Monitor(env, log_dir)
 
@@ -69,7 +70,7 @@ def main():
             elif visual_obs:
                 model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
             elif vector_obs:
-              model = TD3("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
+                model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         else:
             model = DDPG.load(log_dir + "/" + model_name, env)
 
