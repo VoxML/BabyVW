@@ -1,15 +1,17 @@
 import numpy as np
+#from stable_baselines import DDPG, A2C, PPO1
 from stable_baselines3 import DDPG
 import os
 import matplotlib.pyplot as plt
-from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
+#from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
+#from stable_baselines.common.noise import NormalActionNoise
 from stacker_env import StackerEnv
-from stable_baselines3.common.monitor import Monitor
+#from stable_baselines3.common.monitor import Monitor
 import pandas as pd
 import argparse, textwrap
-from stable_baselines3.common.env_util import make_vec_env
+#from stable_baselines.common import make_vec_env
+#from stable_baselines3.common.env_util import make_vec_env
 
-# Parallel environments
 
 
 def main():
@@ -51,6 +53,8 @@ def main():
     os.makedirs(log_dir, exist_ok=True)
 
     env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs,priors=priors)
+
+    #env = make_vec_env(lambda:env, n_envs=2)
 
     #env = Monitor(env, log_dir)
 
