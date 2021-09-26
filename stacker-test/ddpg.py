@@ -1,18 +1,16 @@
 import numpy as np
-#from stable_baselines import DDPG, A2C, PPO1
-from stable_baselines3 import DDPG,PPO
-#from stable_baselines3 import TD3
+from stable_baselines3 import DDPG
+from stable_baselines3 import TD3
 import os
 import matplotlib.pyplot as plt
-#from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
-#from stable_baselines.common.noise import NormalActionNoise
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stacker_env import StackerEnv
-#from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.monitor import Monitor
 import pandas as pd
 import argparse, textwrap
-#from stable_baselines.common import make_vec_env
-#from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.env_util import make_vec_env
 
+# Parallel environments
 
 
 def main():
@@ -53,8 +51,6 @@ def main():
 
     env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs)
 
-    #env = make_vec_env(lambda:env, n_envs=2)
-
     #env = Monitor(env, log_dir)
 
     print("observation_space:", env.observation_space.shape)
@@ -64,7 +60,7 @@ def main():
     n_actions = env.action_space.shape[-1]
     print("n_actions", n_actions)
 
-    #action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
+    action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
     if train:
         if new_model_name is None:
@@ -73,10 +69,7 @@ def main():
             elif visual_obs:
                 model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
             elif vector_obs:
-                model = PPO("MlpPolicy", env, learning_rate=1e-5, verbose=1,
-                            tensorboard_log="./" + tb_name + "/")
-
-                #model = SAC("MlpPolicy", env,  learning_rate=0.0001, verbose=1, tensorboard_log="./" + tb_name + "/")
+              model = TD3("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         else:
             model = DDPG.load(log_dir + "/" + model_name, env)
 
