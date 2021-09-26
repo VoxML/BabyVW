@@ -1,7 +1,7 @@
 import numpy as np
 #from stable_baselines import DDPG, A2C, PPO1
-from stable_baselines3 import DDPG,PPO
-#from stable_baselines3 import TD3
+from stable_baselines3 import DDPG
+from stable_baselines3 import TD3
 import os
 import matplotlib.pyplot as plt
 #from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -64,7 +64,7 @@ def main():
     n_actions = env.action_space.shape[-1]
     print("n_actions", n_actions)
 
-    #action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
+    action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
     if train:
         if new_model_name is None:
@@ -73,10 +73,9 @@ def main():
             elif visual_obs:
                 model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
             elif vector_obs:
-                model = PPO("MlpPolicy", env, learning_rate=1e-5, verbose=1,
+                model = TD3("MlpPolicy", env, learning_rate=1e-5, action_noise=action_noise,verbose=1,
                             tensorboard_log="./" + tb_name + "/")
 
-                #model = SAC("MlpPolicy", env,  learning_rate=0.0001, verbose=1, tensorboard_log="./" + tb_name + "/")
         else:
             model = DDPG.load(log_dir + "/" + model_name, env)
 
