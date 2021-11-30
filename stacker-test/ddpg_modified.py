@@ -111,3 +111,6 @@ def main():
 
     mean_episode_reward = np.mean(all_episode_rewards)
     print("Mean reward:", mean_episode_reward, "Num episodes:", num_episodes)
+
+if __name__ == "__main__":
+    main()
