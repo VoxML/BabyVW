@@ -2,7 +2,7 @@ import numpy as np
 from stable_baselines3 import DDPG, TD3
 import os
 from stable_baselines3.common.noise import NormalActionNoise
-from stacker_env import StackerEnv
+from stacker_env_modified import StackerEnv
 from stable_baselines3.common.monitor import Monitor
 import argparse, textwrap
 
