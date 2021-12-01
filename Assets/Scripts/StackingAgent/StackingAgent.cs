@@ -191,6 +191,7 @@ public class StackingAgent : Agent
             scenarioController.EventCompleted += ApplyForce;
             scenarioController.PostEventWaitCompleted += MakeDecisionRequest;
             scenarioController.PostEventWaitCompleted += ResultObserved;
+            scenarioController.ForceEndEpisode += ForceEndEpisode;
         }
         else
         {
@@ -552,6 +553,11 @@ public class StackingAgent : Agent
             Debug.LogFormat("StackingAgent.ResultObserved: Episode {0} - Trial took {1}-{2} = {3} seconds",
                 episodeCount, trialEndTime.ToString("hh:mm:ss.fffffff"), trialBeginTime.ToString("hh:mm:ss.fffffff"), (trialEndTime - trialBeginTime).TotalSeconds);
         }
+    }
+
+    public void ForceEndEpisode(object sender, EventArgs e)
+    {
+        endEpisode = true;
     }
 
     protected GameObject SelectThemeObject()

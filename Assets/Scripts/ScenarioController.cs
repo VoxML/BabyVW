@@ -101,6 +101,16 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
+    public event EventHandler ForceEndEpisode;
+
+    public void OnForceEndEpisode(object sender, EventArgs e)
+    {
+        if (ForceEndEpisode != null)
+        {
+            ForceEndEpisode(this, e);
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -415,6 +425,7 @@ public class ScenarioController : MonoBehaviour
             GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Position),
             GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Direction),
             ((CalculatedPositionArgs)e).Distance);
+        OnForceEndEpisode(this, null);
     }
 
     bool PointIsInCameraView(Vector3 point, Camera cam)
