@@ -1,6 +1,8 @@
 import numpy as np
 import gym
 from gym import spaces
+from gym.utils import seeding
+
 
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.base_env import ActionTuple
@@ -125,28 +127,28 @@ class StackerEnv(gym.Env):
         #)
         
         # height and CoG
-        self.vector_obs_space = spaces.Box(
-            np.array([0.0,-1.0,-1.0]),
-            np.array([4.0,1.0,1.0]),
-            dtype=np.float32,
-            shape=(3,)
-        )
-        
-        # relations and CoG
         #self.vector_obs_space = spaces.Box(
         #    np.array([0.0,-1.0,-1.0]),
-        #    np.array([5.0,1.0,1.0]),
+        #    np.array([4.0,1.0,1.0]),
         #    dtype=np.float32,
         #    shape=(3,)
         #)
         
+        # relations and CoG
+        self.vector_obs_space = spaces.Box(
+            np.array([0.0,-1.0,-1.0]),
+            np.array([5.0,1.0,1.0]),
+            dtype=np.float32,
+            shape=(3,)
+        )
+        
         # all
-        #self.vector_obs_space = spaces.Box(
-        #    np.array([0.0,0.0,-1.0,-1.0]),
-        #    np.array([4.0,5.0,1.0,1.0]),
-        #    dtype=np.float32,
-        #    shape=(4,)
-        #)
+    #    self.vector_obs_space = spaces.Box(
+    #        np.array([0.0,0.0,-1.0,-1.0]),
+    #        np.array([4.0,5.0,1.0,1.0]),
+    #        dtype=np.float32,
+    #        shape=(4,)
+    #    )
         
         if self.dict_obs:
             self.image_space = self.normalized_image_space
@@ -275,7 +277,10 @@ class StackerEnv(gym.Env):
             elif self.visual_obs:
                 obs = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
             elif self.vector_obs:
-                obs = np.array([1+np.random.normal(0,0.1,1)[0]]) # add gaussian noise
+                #obs = np.array([np.random.normal(0,0.1,1)[0]]) # add gaussian noise
+                obs = np.array([0, self.np_random.uniform(-1,1), self.np_random.uniform(-1,1)])
+                print("obs", obs)
+                print("obs in reset:", obs.shape)
             print("obs is None, setting obs to", obs)
         self.resetting = False
         return obs
@@ -285,18 +290,7 @@ class StackerEnv(gym.Env):
 
     def close(self):
         self._env.close()
-        
-    def seed(self, seed=None):
-        """Sets a fixed seed for this env's random number generator(s).
-        The valid range for seeds is [0, 99999). By default a random seed
-        will be chosen.
-        """
-        if seed is None:
-            self._seed = seed
-            return
 
-        seed = int(seed)
-        if seed < 0 or seed >= 99999:
-            print("Seed outside of valid range [0, 99999). A random seed within the valid range will be used on next reset.")
-        print("New seed " + str(seed) + " will apply on next reset.")
-        self._seed = seed
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
