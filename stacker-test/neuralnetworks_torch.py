@@ -214,7 +214,7 @@ class NeuralNetwork_Classifier(NeuralNetwork):
         for epoch in range(n_epochs):
 
             Y = self(X)
-            
+                        
             ce = CE_func(Y, T)
             ce.backward()
             

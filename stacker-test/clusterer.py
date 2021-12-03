@@ -86,7 +86,7 @@ def main():
     #   15: ep. total reward
     #   16: ep. mean reward
 
-    X = np.hstack([df[:, 7:9],df[:, 12:14],df[:, 16:]])
+    X = np.hstack([df[:, 3:10]])
     T = df[:, 1:2]
     print(X.shape, T.shape)
     
@@ -169,7 +169,8 @@ def main():
         scaled_bottleneck = StandardScaler().fit_transform(bottleneck)
     
         # can we automatically calculate the best epsilon?
-        db = DBSCAN(eps=.43, min_samples=int(bottleneck.shape[0]/20)).fit(scaled_bottleneck)
+        #db = DBSCAN(eps=.43, min_samples=int(bottleneck.shape[0]/20)).fit(scaled_bottleneck)
+        db = DBSCAN(eps=.65, min_samples=7).fit(scaled_bottleneck)
         core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
         core_samples_mask[db.core_sample_indices_] = True
         
