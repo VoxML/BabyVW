@@ -4,6 +4,7 @@ import os
 from stable_baselines3.common.noise import NormalActionNoise
 from stacker_env_modified import StackerEnv
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.evaluation import evaluate_policy
 import argparse, textwrap
 
 
@@ -52,7 +53,7 @@ def main():
 
     # env = make_vec_env(lambda:env, n_envs=2)
 
-    env = Monitor(env, log_dir)
+    # env = Monitor(env, log_dir)
     print("################observation_space shape##################")
     print("observation_space:", env.observation_space.shape)
     print("##########################################################")
@@ -95,22 +96,29 @@ def main():
         print("#################Evaluating agent###################")
         print("###################################################################")
 
+    env.close()
     num_episodes = 30
-    env = model.get_env()
+
+    env = StackerEnv(visual_observation=visual_obs, vector_observation=vector_obs)
+
     all_episode_rewards = []
-    for i in range(num_episodes):
-        episode_rewards = []
-        done = False
-        obs = env.reset()
-        while not done:
-            action, states = model.predict(obs, deterministic=True)
-            obs, reward, done, info = env.step(action)
-            episode_rewards.append(reward)
-
-        all_episode_rewards.append(sum(episode_rewards))
-
+    episode_rewards = []
+    episodes_completed = 0
+    obs = env.reset()
+    while episodes_completed < num_episodes:
+        action, states = model.predict(obs, deterministic=True)
+        obs, reward, done, info = env.step(action)
+        episode_rewards.append(reward)
+        if done:
+            all_episode_rewards.append(sum(episode_rewards))
+            episode_rewards = []
+            done = False
+            episodes_completed += 1
+            obs = env.reset()
+            
     mean_episode_reward = np.mean(all_episode_rewards)
     print("Mean reward:", mean_episode_reward, "Num episodes:", num_episodes)
+    #evaluate_policy(model,env)
 
 if __name__ == "__main__":
     main()
