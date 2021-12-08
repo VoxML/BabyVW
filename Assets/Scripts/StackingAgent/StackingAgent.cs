@@ -32,6 +32,15 @@ public class StackingAgent : Agent
 
     public ScenarioController scenarioController;
 
+    Dictionary<string, int> relToIntDict = new Dictionary<string, int>()
+    {
+        { "support", 1 },
+        { "left", 2 },
+        { "right", 3 },
+        { "in_front", 4 },
+        { "behind", 5 }
+    };
+
     List<Transform> usedDestObjs = new List<Transform>();
     List<Transform> interactableObjs;
 
@@ -583,15 +592,6 @@ public class StackingAgent : Agent
 
     protected List<float> ConstructObservation()
     {
-        Dictionary<string, int> relToIntDict = new Dictionary<string, int>()
-        {
-            { "support", 1 },
-            { "left", 2 },
-            { "right", 3 },
-            { "in_front", 4 },
-            { "behind", 5 }
-        };
-
         // sort objects by height
         List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
         Debug.LogFormat("StackingAgent.ConstructObservation: [{0}]", string.Join(",", sortedByHeight.Select(o => o.position.y).ToList()));
@@ -700,6 +700,13 @@ public class StackingAgent : Agent
         Debug.LogFormat("StackingAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;
 
+        scenarioController.PlaceRandomly(scenarioController.surface);
+        PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
+
+        GameObject newTheme = SelectThemeObject();
+        OnThemeObjChanged(themeObj, newTheme);
+        themeObj = newTheme;
+
         curNumObjsStacked = 1;
 
         if (useVectorObservations)
@@ -708,17 +715,32 @@ public class StackingAgent : Agent
 
             if (useHeight)
             {
-                observation.Add(1);
+                observation.Add(curNumObjsStacked);
             }
 
             if (useRelations)
             {
-                observation.Add(0);
+                List<string> rels = scenarioController.GetRelations(destObj, themeObj);
+                if (rels.Count == 0)
+                {
+                    observation.Add(0);
+                }
+                else
+                {
+                    foreach (string r in rels)
+                    {
+                        if (relToIntDict.Keys.Contains(r))
+                        {
+                            observation.Add(relToIntDict[r]);
+                        }
+                    }
+                }
             }
 
             if (useCenterOfGravity)
             {
-                observation.AddRange(new float[]{ 0, 0 });
+                CalcCenterOfGravity(null,null);
+                observation.AddRange(new float[]{ centerOfGravity.x, centerOfGravity.y });
             }
 
             noisyObservation = observation.Select(o => o == 0 ? o : o + (float)GaussianNoise(0, 0.1f)).ToList();
@@ -733,9 +755,6 @@ public class StackingAgent : Agent
                 string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
                 string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
         }
-
-        scenarioController.PlaceRandomly(scenarioController.surface);
-        PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
 
         episodeStarted = true;
         episodeBeginTime = DateTime.Now;
