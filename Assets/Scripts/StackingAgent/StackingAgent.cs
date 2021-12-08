@@ -444,9 +444,15 @@ public class StackingAgent : Agent
 
     public void CalcCenterOfGravity(object sender, EventArgs e)
     {
-        Bounds combinedBounds = GlobalHelper.GetObjectWorldSize(usedDestObjs.Select(t => t.gameObject).Append(themeObj).ToList());
-        centerOfGravity = new Vector2(combinedBounds.center.x, combinedBounds.center.z) -
-            new Vector2(usedDestObjs.First().position.x, usedDestObjs.First().position.z);
+        // calc center of stack bounds
+        // calc center of theme object bounds
+        // CoG = center of theme bounds - center of stack bounds
+        Bounds stackBounds = GlobalHelper.GetObjectWorldSize(usedDestObjs.Select(t => t.gameObject).ToList());
+        Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
+        centerOfGravity = new Vector2(themeBounds.center.x, themeBounds.center.z) -
+            new Vector2(stackBounds.center.x, stackBounds.center.z);
+        // scale by size of the stack bounds
+        centerOfGravity = new Vector2(centerOfGravity.x / stackBounds.size.x, centerOfGravity.y / stackBounds.size.z);
 
         Debug.LogFormat("StackingAgent.CalcCenterOfGravity: <{0};{1}>", centerOfGravity.x, centerOfGravity.y);
     }
