@@ -281,7 +281,7 @@ class StackerEnv(gym.Env):
         
         # reset the base environment and get the resulting observation
         self._env.reset()
-        obs = self._env._env_state[self.behavior_name][0].obs
+        obs = self._env._env_state[self.behavior_name][0].obs[0]
         
         if obs is None:
             if self.dict_obs:
