@@ -93,9 +93,11 @@ class StackerEnv(gym.Env):
         
         max_height = 4
         num_relations = 5
+        
+        self.priors = priors
                 
         # height only
-        if priors == ['HGT']:
+        if self.priors == ['HGT']:
             self.vector_obs_space = spaces.Box(
                 0.0,
                 float(height_max),
@@ -104,7 +106,7 @@ class StackerEnv(gym.Env):
             )
         
         # relations only
-        if priors == ['REL']:
+        if self.priors == ['REL']:
             self.vector_obs_space = spaces.Box(
                 0.0,
                 float(num_relations),
@@ -113,7 +115,7 @@ class StackerEnv(gym.Env):
             )
         
         # CoG only
-        if priors == ['COG']:
+        if self.priors == ['COG']:
             self.vector_obs_space = spaces.Box(
                 np.array([-1.0,-1.0]),
                 np.array([1.0,1.0]),
@@ -122,7 +124,7 @@ class StackerEnv(gym.Env):
             )
         
         # height and relations
-        if priors == ['HGT','REL']:
+        if self.priors == ['HGT','REL']:
             self.vector_obs_space = spaces.Box(
                 np.array([0.0,0.0]),
                 np.array([float(max_height),float(num_relations)]),
@@ -131,8 +133,7 @@ class StackerEnv(gym.Env):
             )
         
         # height and CoG
-        if priors == ['COG','HGT']:
-            print(priors)
+        if self.priors == ['COG','HGT']:
             self.vector_obs_space = spaces.Box(
                 np.array([0.0,-1.0,-1.0]),
                 np.array([float(max_height),1.0,1.0]),
@@ -141,7 +142,7 @@ class StackerEnv(gym.Env):
             )
         
         # relations and CoG
-        if priors == ['COG','REL']:
+        if self.priors == ['COG','REL']:
             self.vector_obs_space = spaces.Box(
                 np.array([0.0,-1.0,-1.0]),
                 np.array([float(num_relations),1.0,1.0]),
@@ -150,7 +151,7 @@ class StackerEnv(gym.Env):
             )
         
         # all
-        if priors == ['COG','HGT','REL']:
+        if self.priors == ['COG','HGT','REL']:
             self.vector_obs_space = spaces.Box(
                 np.array([0.0,0.0,-1.0,-1.0]),
                 np.array([float(max_height),float(num_relations),1.0,1.0]),
@@ -162,9 +163,10 @@ class StackerEnv(gym.Env):
             self.image_space = self.normalized_image_space
         elif self.visual_obs:
             self.image_space = self.raw_image_space
-            
-        self.reset()
-        
+                
+        # reset the environment
+        self._env.reset()
+                
         # get behavior name from Unity
         self.behavior_name = list(self._env.behavior_specs)[0]
         print(self.behavior_name)
@@ -276,7 +278,11 @@ class StackerEnv(gym.Env):
         #    assert False
         self.resetting = True
         self.seed()
-        obs = self._env.reset()
+        
+        # reset the base environment and get the resulting observation
+        self._env.reset()
+        obs = self._env._env_state[self.behavior_name][0].obs
+        
         if obs is None:
             if self.dict_obs:
                 obs = {}
@@ -285,7 +291,27 @@ class StackerEnv(gym.Env):
             elif self.visual_obs:
                 obs = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
             elif self.vector_obs:
-                obs = np.array([1+np.random.normal(0,0.1,1)[0]]) # add gaussian noise
+                if self.priors == ['HGT']:
+                    obs = np.array([1])
+            
+                if self.priors == ['REL']:
+                    obs = np.array([0])
+
+                if self.priors == ['COG']:
+                    obs = np.array([0,0])
+            
+                if self.priors == ['HGT','REL']:
+                    obs = np.array([1,0])
+
+                if self.priors == ['COG','HGT']:
+                    obs = np.array([1,0,0])
+
+                if self.priors == ['COG','REL']:
+                    obs = np.array([0,0,0])
+            
+                if self.priors == ['COG','HGT','REL']:
+                    obs = np.array([1,0,0,0])
+
             print("obs is None, setting obs to", obs)
         self.resetting = False
         return obs

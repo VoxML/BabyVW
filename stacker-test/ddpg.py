@@ -86,11 +86,14 @@ def main():
 
     if test:
         model = DDPG.load(log_dir + "/" + model_name)
-        print(model)
-        print(model.policy)
-        print(model.get_parameters())
-
-        obs = env.reset()
+        print("Loaded model", log_dir + "/" + model_name)
+        #print(model)
+        #print(model.policy)
+        #print(model.get_parameters())
+        
+        # reset the environment and get the resulting observation
+        env.reset()
+        obs = env._env._env_state[env.behavior_name][0].obs[0]
 
         i = 0
         ep_reward = 0
@@ -110,8 +113,10 @@ def main():
                 max_reward = ep_reward if ep_reward > max_reward else max_reward
                 total_episodes += 1
                 ep_reward = 0
+                # reset the environment and get the resulting observation
                 env.reset()
-                
+                obs = env._env._env_state[env.behavior_name][0].obs[0]
+
             if visual_obs and vector_obs:
                 if not np.allclose(obs["visual_obs"], last_obs["visual_obs"]) and\
                  not np.allclose(obs["vector_obs"], last_obs["vector_obs"]):
