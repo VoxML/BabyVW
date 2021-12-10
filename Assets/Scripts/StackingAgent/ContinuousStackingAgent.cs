@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using VoxSimPlatform.CogPhysics;
 using VoxSimPlatform.Global;
@@ -42,37 +42,45 @@ public class ContinuousStackingAgent : StackingAgent
                         GlobalHelper.VectorToParsable(themeBounds.size),
                         GlobalHelper.VectorToParsable(destBounds.center),
                         GlobalHelper.VectorToParsable(destBounds.size));
-                        
+
+                    // convert the action value to a location on the surface of the destination object
                     Vector3 targetPos = new Vector3(
-                        destBounds.center.x + (destBounds.size.x * targetOnSurface.x),
+                        destBounds.center.x + (destBounds.size.x * ((.01f*targetOnSurface.x) - 5f)),
                         destBounds.max.y + themeBounds.extents.y,
-                        destBounds.center.z + (destBounds.size.z * targetOnSurface.y));
+                        destBounds.center.z + (destBounds.size.z * ((.01f*targetOnSurface.y) - 5f)));
 
-                    Vector3 inputPoint = new Vector3(targetPos.x, destBounds.max.y, targetPos.z);
-                    Vector3 closestPoint = Physics.ClosestPoint(inputPoint,
-                        themeObj.GetComponentInChildren<Collider>(),
-                        targetPos, themeObj.transform.rotation);
+                    // if the the object wouldn't touch the destination object at this location, don't even bother simulating it
+                    // we know it'll fall
+                    //Bounds projectedBounds = new Bounds(targetPos, themeBounds.size);
 
-                    if (closestPoint.y > inputPoint.y)
-                    {
-                        targetPos = new Vector3(targetPos.x, targetPos.y - (closestPoint.y - inputPoint.y), targetPos.z);
-                    }
+                    //if (projectedBounds.Intersects(destBounds))
+                    //{ 
+                        Vector3 inputPoint = new Vector3(targetPos.x, destBounds.max.y, targetPos.z);
+                        Vector3 closestPoint = Physics.ClosestPoint(inputPoint,
+                            themeObj.GetComponentInChildren<Collider>(),
+                            targetPos, themeObj.transform.rotation);
 
-                    if (!scenarioController.circumventEventManager)
-                    {
-                        themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
-                        PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
+                        if (closestPoint.y > inputPoint.y)
+                        {
+                            targetPos = new Vector3(targetPos.x, targetPos.y - (closestPoint.y - inputPoint.y), targetPos.z);
+                        }
 
-                        string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
-                        Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
-                        scenarioController.SendToEventManager(eventStr);
-                    }
-                    else
-                    {
-                        themeObj.GetComponent<Rigging>().ActivatePhysics(false);
-                        themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
-                        scenarioController.OnEventExecuting(null, null);
-                    }
+                        if (!scenarioController.circumventEventManager)
+                        {
+                            themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
+                            PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
+
+                            string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
+                            Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
+                            scenarioController.SendToEventManager(eventStr);
+                        }
+                        else
+                        {
+                            themeObj.GetComponent<Rigging>().ActivatePhysics(false);
+                            themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
+                            scenarioController.OnEventExecuting(null, null);
+                        }
+                    //}
 
                     episodeNumActions += 1;
                     Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumTrials = {0}", episodeNumActions);

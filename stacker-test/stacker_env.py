@@ -93,6 +93,7 @@ class StackerEnv(gym.Env):
         
         max_height = 4
         num_relations = 5
+        obs_space_scale = 1
         
         self.priors = priors
                 
@@ -100,7 +101,7 @@ class StackerEnv(gym.Env):
         if self.priors == ['HGT']:
             self.vector_obs_space = spaces.Box(
                 0.0,
-                float(height_max),
+                float(height_max)*obs_space_scale,
                 dtype=np.float32,
                 shape=(1,)
             )
@@ -109,7 +110,7 @@ class StackerEnv(gym.Env):
         if self.priors == ['REL']:
             self.vector_obs_space = spaces.Box(
                 0.0,
-                float(num_relations),
+                float(num_relations)*obs_space_scale,
                 dtype=np.float32,
                 shape=(1,)
             )
@@ -117,8 +118,8 @@ class StackerEnv(gym.Env):
         # CoG only
         if self.priors == ['COG']:
             self.vector_obs_space = spaces.Box(
-                np.array([-1.0,-1.0]),
-                np.array([1.0,1.0]),
+                np.array([-1.0*obs_space_scale,-1.0*obs_space_scale]),
+                np.array([1.0*obs_space_scale,1.0*obs_space_scale]),
                 dtype=np.float32,
                 shape=(2,)
             )
@@ -127,7 +128,7 @@ class StackerEnv(gym.Env):
         if self.priors == ['HGT','REL']:
             self.vector_obs_space = spaces.Box(
                 np.array([0.0,0.0]),
-                np.array([float(max_height),float(num_relations)]),
+                np.array([float(max_height)*obs_space_scale,float(num_relations)*obs_space_scale]),
                 dtype=np.float32,
                 shape=(2,)
             )
@@ -135,8 +136,8 @@ class StackerEnv(gym.Env):
         # height and CoG
         if self.priors == ['COG','HGT']:
             self.vector_obs_space = spaces.Box(
-                np.array([0.0,-1.0,-1.0]),
-                np.array([float(max_height),1.0,1.0]),
+                np.array([0.0,-1.0*obs_space_scale,-1.0*obs_space_scale]),
+                np.array([float(max_height)*obs_space_scale,1.0*obs_space_scale,1.0*obs_space_scale]),
                 dtype=np.float32,
                 shape=(3,)
             )
@@ -144,8 +145,8 @@ class StackerEnv(gym.Env):
         # relations and CoG
         if self.priors == ['COG','REL']:
             self.vector_obs_space = spaces.Box(
-                np.array([0.0,-1.0,-1.0]),
-                np.array([float(num_relations),1.0,1.0]),
+                np.array([0.0,-1.0*obs_space_scale,-1.0*obs_space_scale]),
+                np.array([float(num_relations)*obs_space_scale,1.0*obs_space_scale,1.0*obs_space_scale]),
                 dtype=np.float32,
                 shape=(3,)
             )
@@ -153,8 +154,9 @@ class StackerEnv(gym.Env):
         # all
         if self.priors == ['COG','HGT','REL']:
             self.vector_obs_space = spaces.Box(
-                np.array([0.0,0.0,-1.0,-1.0]),
-                np.array([float(max_height),float(num_relations),1.0,1.0]),
+                np.array([0.0,0.0,-1.0*obs_space_scale,-1.0*obs_space_scale]),
+                np.array([float(max_height)*obs_space_scale,float(num_relations)*obs_space_scale,\
+                    -1.0(obs_space_scale),1.0*obs_space_scale]),
                 dtype=np.float32,
                 shape=(4,)
             )
@@ -178,8 +180,8 @@ class StackerEnv(gym.Env):
         # define action and observation space
         # action: where on the surface of the target block do I put my object?
         # observation: how tall is the tallest thing in the world?
-        self.action_space = spaces.Box(np.array([-1,-1]),
-            np.array([1,1]))
+        self.action_space = spaces.Box(np.array([0,0]),
+            np.array([1000,1000]))
                     
         if self.dict_obs:
             self.observation_space = spaces.Dict(
@@ -292,7 +294,7 @@ class StackerEnv(gym.Env):
                 obs = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
             elif self.vector_obs:
                 if self.priors == ['HGT']:
-                    obs = np.array([1])
+                    obs = np.array([obs_space_scale])
             
                 if self.priors == ['REL']:
                     obs = np.array([0])
@@ -301,16 +303,16 @@ class StackerEnv(gym.Env):
                     obs = np.array([0,0])
             
                 if self.priors == ['HGT','REL']:
-                    obs = np.array([1,0])
+                    obs = np.array([obs_space_scale,0])
 
                 if self.priors == ['COG','HGT']:
-                    obs = np.array([1,0,0])
+                    obs = np.array([obs_space_scale,0,0])
 
                 if self.priors == ['COG','REL']:
                     obs = np.array([0,0,0])
             
                 if self.priors == ['COG','HGT','REL']:
-                    obs = np.array([1,0,0,0])
+                    obs = np.array([obs_space_scale,0,0,0])
 
             print("obs is None, setting obs to", obs)
         self.resetting = False

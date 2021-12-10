@@ -24,6 +24,10 @@ public class StackingAgent : Agent
     public int episodeMaxActions;
     public int episodeNumActions;
 
+    public float posRewardMultiplier;
+    public float negRewardMultiplier;
+    public float observationSpaceScale;
+
     public float forceMultiplier;
 
     public bool writeOutSamples;
@@ -34,11 +38,11 @@ public class StackingAgent : Agent
 
     Dictionary<string, int> relToIntDict = new Dictionary<string, int>()
     {
-        { "support", 1 },
-        { "left", 2 },
-        { "right", 3 },
-        { "in_front", 4 },
-        { "behind", 5 }
+        { "support", 10 },
+        { "left", 20 },
+        { "right", 30 },
+        { "in_front", 40 },
+        { "behind", 50 }
     };
 
     List<Transform> usedDestObjs = new List<Transform>();
@@ -244,6 +248,7 @@ public class StackingAgent : Agent
             observation = ConstructObservation().Select(o => (float)o).ToList();
             noisyObservation = observation.Select(o => o + (float)GaussianNoise(0, 0.1f)).ToList();
             float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? (curNumObjsStacked - lastNumObjsStacked) : (curNumObjsStacked - lastNumObjsStacked) - 1;
+            reward = reward > 0 ? reward * posRewardMultiplier : reward * negRewardMultiplier;
             Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, reward);
             AddReward(reward);
             episodeTotalReward += reward;
@@ -447,12 +452,23 @@ public class StackingAgent : Agent
         // calc center of stack bounds
         // calc center of theme object bounds
         // CoG = center of theme bounds - center of stack bounds
+        Debug.LogFormat("StackingAgent.CalcCenterOfGravity: size of stack = {0}", usedDestObjs.Count);
+
         Bounds stackBounds = GlobalHelper.GetObjectWorldSize(usedDestObjs.Select(t => t.gameObject).ToList());
         Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
         centerOfGravity = new Vector2(themeBounds.center.x, themeBounds.center.z) -
             new Vector2(stackBounds.center.x, stackBounds.center.z);
         // scale by size of the stack bounds
-        centerOfGravity = new Vector2(centerOfGravity.x / stackBounds.size.x, centerOfGravity.y / stackBounds.size.z);
+        centerOfGravity = new Vector2(centerOfGravity.x / stackBounds.size.x * observationSpaceScale,
+            centerOfGravity.y / stackBounds.size.z * observationSpaceScale);
+        // scale by size of the stack bounds and clamp
+        //centerOfGravity = new Vector2(
+        //    Mathf.Clamp(centerOfGravity.x / stackBounds.size.x, -.99f, .99f),
+        //    Mathf.Clamp(centerOfGravity.y / stackBounds.size.z, -.99f, .99f));
+        //// then take the arctanh (inverse of tanh)
+        //centerOfGravity = new Vector2(
+        //.5f * (Mathf.Log(1 + centerOfGravity.x) - Mathf.Log(1 - centerOfGravity.x)),
+        //.5f * (Mathf.Log(1 + centerOfGravity.x) - Mathf.Log(1 - centerOfGravity.x)));
 
         Debug.LogFormat("StackingAgent.CalcCenterOfGravity: <{0};{1}>", centerOfGravity.x, centerOfGravity.y);
     }
@@ -609,7 +625,7 @@ public class StackingAgent : Agent
         List<float> obs = new List<float>();
         if (useHeight)
         {
-            obs.Add(curNumObjsStacked);
+            obs.Add(curNumObjsStacked*observationSpaceScale);
         }
 
         if (useRelations)
@@ -721,7 +737,7 @@ public class StackingAgent : Agent
 
             if (useHeight)
             {
-                observation.Add(curNumObjsStacked);
+                observation.Add(curNumObjsStacked*observationSpaceScale);
             }
 
             if (useRelations)

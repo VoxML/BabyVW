@@ -539,7 +539,7 @@ MonoBehaviour:
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
-  circumventEventManager: 0
+  circumventEventManager: 1
   postEventWaitTimerTime: 1000
   timeScale: 100
 --- !u!4 &130105525
@@ -1061,6 +1061,9 @@ MonoBehaviour:
   episodeCount: 0
   episodeMaxActions: 0
   episodeNumActions: 0
+  posRewardMultiplier: 0
+  negRewardMultiplier: 0
+  observationSpaceScale: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
   outFileName: 
@@ -1209,6 +1212,9 @@ MonoBehaviour:
   episodeCount: 0
   episodeMaxActions: 10
   episodeNumActions: 0
+  posRewardMultiplier: 0
+  negRewardMultiplier: 0
+  observationSpaceScale: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
   outFileName: 
@@ -4472,6 +4478,9 @@ MonoBehaviour:
   episodeCount: 0
   episodeMaxActions: 10
   episodeNumActions: 0
+  posRewardMultiplier: 1000
+  negRewardMultiplier: 1000
+  observationSpaceScale: 1
   forceMultiplier: 0.00025
   writeOutSamples: 0
   outFileName: stacker-test/trial-data/081021-4obj
@@ -4713,6 +4722,9 @@ MonoBehaviour:
   episodeCount: 0
   episodeMaxActions: 0
   episodeNumActions: 0
+  posRewardMultiplier: 0
+  negRewardMultiplier: 0
+  observationSpaceScale: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
   outFileName: 

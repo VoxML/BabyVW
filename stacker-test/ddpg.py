@@ -8,6 +8,7 @@ from stable_baselines3.common.monitor import Monitor
 import pandas as pd
 import argparse, textwrap
 from stable_baselines3.common.env_util import make_vec_env
+import time
 
 def main():
     parser = argparse.ArgumentParser(description=textwrap.dedent('''
@@ -72,10 +73,14 @@ def main():
                 model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         else:
             model = DDPG.load(log_dir + "/" + model_name, env)
+            
+        print(model.policy)
 
-        model.learn(total_timesteps=total_timesteps)
+        start_time = time.time()
+        model.learn(total_timesteps=total_timesteps, log_interval=1)
 
         print("Done learning")
+        print("Training took %.4f seconds" % float(time.time()-start_time))
 
         if new_model_name is None:
             model.save(log_dir + "/" + model_name)
