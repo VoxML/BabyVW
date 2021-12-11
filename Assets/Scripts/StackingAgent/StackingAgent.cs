@@ -38,11 +38,11 @@ public class StackingAgent : Agent
 
     Dictionary<string, int> relToIntDict = new Dictionary<string, int>()
     {
-        { "support", 10 },
-        { "left", 20 },
-        { "right", 30 },
-        { "in_front", 40 },
-        { "behind", 50 }
+        { "support", 1 },
+        { "left", 2 },
+        { "right", 3 },
+        { "in_front", 4 },
+        { "behind", 5}
     };
 
     List<Transform> usedDestObjs = new List<Transform>();
@@ -248,14 +248,9 @@ public class StackingAgent : Agent
             observation = ConstructObservation().Select(o => (float)o).ToList();
             noisyObservation = observation.Select(o => o + (float)GaussianNoise(0, 0.1f)).ToList();
             float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? (curNumObjsStacked - lastNumObjsStacked) : (curNumObjsStacked - lastNumObjsStacked) - 1;
-            reward = reward > 0 ? reward * posRewardMultiplier : reward * negRewardMultiplier;
-            reward = reward > 0 ? (reward / episodeMaxActions) * (episodeMaxActions - episodeNumActions + 1) : reward;
+            reward = reward > 0 ? reward * posRewardMultiplier : reward * negRewardMultiplier; // scale up
+            reward = reward > 0 ? (reward / episodeMaxActions) * (episodeMaxActions - episodeNumActions + 1) : reward; // decay positive rewards
             Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, reward);
-            //Debug.Log(observation.Count);
-            //Debug.Log(lastObservation.Count);
-            //Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}",
-                //string.Format("{0}", string.Join(",", observation.Select(o => o.ToString()))),
-                //string.Format("{0}", string.Join(",", lastObservation.Select(o => o.ToString()))), reward);
             AddReward(reward);
             episodeTotalReward += reward;
             WriteOutSample(themeObj.transform, destObj.transform, lastAction, reward);
@@ -647,7 +642,7 @@ public class StackingAgent : Agent
                 {
                     if (relToIntDict.Keys.Contains(r))
                     {
-                        obs.Add(relToIntDict[r]);
+                        obs.Add(relToIntDict[r]*observationSpaceScale);
                     }
                 }
             }
@@ -655,8 +650,8 @@ public class StackingAgent : Agent
 
         if (useCenterOfGravity)
         {
-            obs.Add(centerOfGravity.x);
-            obs.Add(centerOfGravity.y);
+            obs.Add(centerOfGravity.x*observationSpaceScale);
+            obs.Add(centerOfGravity.y*observationSpaceScale);
         }
 
         return obs;
@@ -760,7 +755,7 @@ public class StackingAgent : Agent
                     {
                         if (relToIntDict.Keys.Contains(r))
                         {
-                            observation.Add(relToIntDict[r]);
+                            observation.Add(relToIntDict[r]*observationSpaceScale);
                         }
                     }
                 }
@@ -769,7 +764,7 @@ public class StackingAgent : Agent
             if (useCenterOfGravity)
             {
                 CalcCenterOfGravity(null,null);
-                observation.AddRange(new float[]{ centerOfGravity.x, centerOfGravity.y });
+                observation.AddRange(new float[]{ centerOfGravity.x*observationSpaceScale, centerOfGravity.y*observationSpaceScale });
             }
 
             noisyObservation = observation.Select(o => o == 0 ? o : o + (float)GaussianNoise(0, 0.1f)).ToList();
