@@ -156,7 +156,7 @@ class StackerEnv(gym.Env):
             self.vector_obs_space = spaces.Box(
                 np.array([0.0,0.0,-1.0*obs_space_scale,-1.0*obs_space_scale]),
                 np.array([float(max_height)*obs_space_scale,float(num_relations)*obs_space_scale,\
-                    -1.0(obs_space_scale),1.0*obs_space_scale]),
+                    -1.0*obs_space_scale,1.0*obs_space_scale]),
                 dtype=np.float32,
                 shape=(4,)
             )
@@ -202,9 +202,8 @@ class StackerEnv(gym.Env):
         if self.resetting:
             self.resetting = False
         
-        if not np.allclose(action,self.last_action):
-            print("last_action:",self.last_action)
-            print("action:",action)
+        print("last_action:",self.last_action)
+        print("action:",action)
         self._env.set_actions(self.behavior_name, ActionTuple(continuous=action.reshape((1,-1))))
         print("action shape:", action.reshape((1, -1)).shape)
         self._env.step()

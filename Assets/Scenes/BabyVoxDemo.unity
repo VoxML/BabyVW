@@ -1063,6 +1063,7 @@ MonoBehaviour:
   episodeNumActions: 0
   posRewardMultiplier: 0
   negRewardMultiplier: 0
+  partialSuccessReward: 0
   observationSpaceScale: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
@@ -1214,6 +1215,7 @@ MonoBehaviour:
   episodeNumActions: 0
   posRewardMultiplier: 0
   negRewardMultiplier: 0
+  partialSuccessReward: 0
   observationSpaceScale: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0
@@ -1221,6 +1223,9 @@ MonoBehaviour:
   scenarioController: {fileID: 130105524}
   actionSpaceLow: {x: 0, y: 0}
   actionSpaceHigh: {x: 0, y: 0}
+  targetAction: {x: 0, y: 0}
+  randomizeTargetAction: 0
+  rewardBoost: 0
 --- !u!114 &355840416
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4482,6 +4487,7 @@ MonoBehaviour:
   episodeNumActions: 0
   posRewardMultiplier: 1000
   negRewardMultiplier: 1
+  partialSuccessReward: 0
   observationSpaceScale: 1
   forceMultiplier: 0.00025
   writeOutSamples: 0
@@ -4489,6 +4495,9 @@ MonoBehaviour:
   scenarioController: {fileID: 130105524}
   actionSpaceLow: {x: 0, y: 0}
   actionSpaceHigh: {x: 1000, y: 1000}
+  targetAction: {x: 0.5, y: 0.5}
+  randomizeTargetAction: 0
+  rewardBoost: 10
 --- !u!114 &1759529657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4728,6 +4737,7 @@ MonoBehaviour:
   episodeNumActions: 0
   posRewardMultiplier: 0
   negRewardMultiplier: 0
+  partialSuccessReward: 0
   observationSpaceScale: 0
   forceMultiplier: 0.00025
   writeOutSamples: 0

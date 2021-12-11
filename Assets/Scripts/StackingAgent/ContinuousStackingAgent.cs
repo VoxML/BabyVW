@@ -7,6 +7,9 @@ using VoxSimPlatform.Vox;
 public class ContinuousStackingAgent : StackingAgent
 {
     public Vector2 actionSpaceLow,actionSpaceHigh;
+    public Vector2 targetAction;    // as a percentage of X/Y action space (-1 to 1)
+    public bool randomizeTargetAction;
+    public float rewardBoost;
 
     public override void OnActionReceived(float[] vectorAction)
     {
@@ -29,6 +32,8 @@ public class ContinuousStackingAgent : StackingAgent
                     return;
                 }
 
+                partialSuccessReward = 0;
+
                 vectorAction.CopyTo(lastAction, 0);
 
                 Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}", string.Format("[{0}]", string.Join(",", vectorAction)));
@@ -45,9 +50,11 @@ public class ContinuousStackingAgent : StackingAgent
 
                 // convert the action value to a location on the surface of the destination object
                 Vector3 targetPos = new Vector3(
-                    destBounds.center.x + (destBounds.size.x * (.01f * (targetOnSurface.x - ((actionSpaceHigh.x - actionSpaceLow.x) / 2)))),
+                    destBounds.center.x + (destBounds.size.x * (.01f * (targetOnSurface.x - ((actionSpaceHigh.x - actionSpaceLow.x) * 
+                        ((1f + targetAction.x) * .5f))))),
                     destBounds.max.y + themeBounds.extents.y,
-                    destBounds.center.z + (destBounds.size.z * (.01f * (targetOnSurface.y - ((actionSpaceHigh.y - actionSpaceLow.y) / 2)))));
+                    destBounds.center.z + (destBounds.size.z * (.01f * (targetOnSurface.y - ((actionSpaceHigh.y - actionSpaceLow.y) *
+                        ((1f + targetAction.y) * .5f))))));
 
                 // if the the object wouldn't touch the destination object at this location, don't even bother simulating it
                 // we know it'll fall
@@ -80,6 +87,8 @@ public class ContinuousStackingAgent : StackingAgent
                         themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
                         scenarioController.OnEventExecuting(null, null);
                     }
+
+                    partialSuccessReward = rewardBoost;
 
                     waitingForAction = false;
                 }

@@ -26,6 +26,7 @@ public class StackingAgent : Agent
 
     public float posRewardMultiplier;
     public float negRewardMultiplier;
+    public float partialSuccessReward;
     public float observationSpaceScale;
 
     public float forceMultiplier;
@@ -250,6 +251,7 @@ public class StackingAgent : Agent
             float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? (curNumObjsStacked - lastNumObjsStacked) : (curNumObjsStacked - lastNumObjsStacked) - 1;
             reward = reward > 0 ? reward * posRewardMultiplier : reward * negRewardMultiplier; // scale up
             reward = reward > 0 ? (reward / episodeMaxActions) * (episodeMaxActions - episodeNumActions + 1) : reward; // decay positive rewards
+            reward = reward > 0 ? reward : reward + partialSuccessReward; // add reward for partial success, if any
             Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, reward);
             AddReward(reward);
             episodeTotalReward += reward;
