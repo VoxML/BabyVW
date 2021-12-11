@@ -9,14 +9,15 @@ import pandas as pd
 import argparse, textwrap
 from stable_baselines3.common.env_util import make_vec_env
 import time
+from datetime import datetime
 
 def main():
     parser = argparse.ArgumentParser(description=textwrap.dedent('''
         Stacker parameters.
         Example usage:
-        \tTrain new model for 500 timesteps using vector observations only, and save the model in the "cube_stacking_model" directory: "python ddpg.py -b stacker -l cube_stacking_model -t 500 --train --vector_obs"
-        \tTest ddpg_1 for 50 timesteps: "python ddpg.py -b stacker -m ddpg_1 -t 50 --test"
-        \tLoad ddpg_1, continue training for 100 timesteps, and save the result as "ddpg_2": "python ddpg.py -b stacker -m ddpg_1 -M ddpg_2" -t 100 --train"
+        \tTrain new model for 500 timesteps using vector observations only with height and center of gravity priors, and save the model (using default naming conventions) in the "cube_stacking_model" directory: "python ddpg.py -b stacker -l cube_stacking_model -t 500 --train --vector_obs -p HGT COG"
+        \tTest ddpg_1 for 50 timesteps using height prior only: "python ddpg.py -b stacker -m ddpg_1 -t 50 --test -p HGT"
+        \tLoad ddpg_1, continue training for 100 timesteps using center of gravity prior only, and save the result as "ddpg_2": "python ddpg.py -b stacker -m ddpg_1 -M ddpg_2 -t 100 --train -p COG"
         '''),formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--log_dir', '-l', metavar='LOGDIR', default='.', help='log directory')
     parser.add_argument('--tb_name', '-b', metavar='TBNAME', default='.', help='TensorBoard path name')
@@ -70,7 +71,7 @@ def main():
             elif visual_obs:
                 model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
             elif vector_obs:
-                model = DDPG("MlpPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
+                model = DDPG("MlpPolicy", env, learning_rate=1e-3, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         else:
             model = DDPG.load(log_dir + "/" + model_name, env)
             
@@ -83,11 +84,17 @@ def main():
         print("Training took %.4f seconds" % float(time.time()-start_time))
 
         if new_model_name is None:
-            model.save(log_dir + "/" + model_name)
-            print("Model saved at", log_dir + "/" + model_name)
+            filename = model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
+                str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
+                "-" + str(total_timesteps)
+            model.save(log_dir + "/" + filename)
+            print("Model saved at", log_dir + "/" + filename)
         else:
-            model.save(log_dir + "/" + new_model_name)
-            print("Model saved at", log_dir + "/" + new_model_name)
+            filename = new_model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
+                str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
+                "-" + str(total_timesteps)
+            model.save(log_dir + "/" + filename)
+            print("Model saved at", log_dir + "/" + filename)
 
     if test:
         model = DDPG.load(log_dir + "/" + model_name)
@@ -122,16 +129,16 @@ def main():
                 env.reset()
                 obs = env._env._env_state[env.behavior_name][0].obs[0]
 
-            if visual_obs and vector_obs:
-                if not np.allclose(obs["visual_obs"], last_obs["visual_obs"]) and\
-                 not np.allclose(obs["vector_obs"], last_obs["vector_obs"]):
-                    i += 1
-            elif visual_obs:
-                if not np.allclose(obs, last_obs):
-                    i += 1
-            elif vector_obs:
-                if not np.allclose(obs, last_obs):
-                    i += 1
+#            if visual_obs and vector_obs:
+#                if not np.allclose(obs["visual_obs"], last_obs["visual_obs"]) and\
+#                 not np.allclose(obs["vector_obs"], last_obs["vector_obs"]):
+#                    i += 1
+#            elif visual_obs:
+#                if not np.allclose(obs, last_obs):
+#                    i += 1
+#            elif vector_obs:
+#                if not np.allclose(obs, last_obs):
+            i += 1
                 
             if i == total_timesteps:
                 break

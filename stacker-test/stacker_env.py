@@ -101,7 +101,7 @@ class StackerEnv(gym.Env):
         if self.priors == ['HGT']:
             self.vector_obs_space = spaces.Box(
                 0.0,
-                float(height_max)*obs_space_scale,
+                float(max_height)*obs_space_scale,
                 dtype=np.float32,
                 shape=(1,)
             )
