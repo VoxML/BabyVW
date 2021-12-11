@@ -6,6 +6,8 @@ using VoxSimPlatform.Vox;
 
 public class ContinuousStackingAgent : StackingAgent
 {
+    public Vector2 actionSpaceLow,actionSpaceHigh;
+
     public override void OnActionReceived(float[] vectorAction)
     {
         base.OnActionReceived(vectorAction);
@@ -16,83 +18,87 @@ public class ContinuousStackingAgent : StackingAgent
 
             if (scenarioController.IsValidAction(targetOnSurface))
             {
-                if (!vectorAction.SequenceEqual(lastAction))
+                GameObject newTheme = SelectThemeObject();
+
+                // when this happens the physics resolution hasn't finished yet so the new position of the destination object hasn't updated
+                OnThemeObjChanged(themeObj, newTheme);
+                themeObj = newTheme;
+
+                if (themeObj == null)
                 {
-                    GameObject newTheme = SelectThemeObject();
+                    return;
+                }
 
-                    // when this happens the physics resolution hasn't finished yet so the new position of the destination object hasn't updated
-                    OnThemeObjChanged(themeObj, newTheme);
-                    themeObj = newTheme;
+                vectorAction.CopyTo(lastAction, 0);
 
-                    if (themeObj == null)
+                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}", string.Format("[{0}]", string.Join(",", vectorAction)));
+
+                Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
+                Bounds destBounds = GlobalHelper.GetObjectWorldSize(destObj);
+                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: " +
+                	"themeBounds.center = {0}; themeBounds.size = {1}; " +
+                    "destBounds.center = {2}; destBounds.size = {3}",
+                    GlobalHelper.VectorToParsable(themeBounds.center),
+                    GlobalHelper.VectorToParsable(themeBounds.size),
+                    GlobalHelper.VectorToParsable(destBounds.center),
+                    GlobalHelper.VectorToParsable(destBounds.size));
+
+                // convert the action value to a location on the surface of the destination object
+                Vector3 targetPos = new Vector3(
+                    destBounds.center.x + (destBounds.size.x * (.01f * (targetOnSurface.x - ((actionSpaceHigh.x - actionSpaceLow.x) / 2)))),
+                    destBounds.max.y + themeBounds.extents.y,
+                    destBounds.center.z + (destBounds.size.z * (.01f * (targetOnSurface.y - ((actionSpaceHigh.y - actionSpaceLow.y) / 2)))));
+
+                // if the the object wouldn't touch the destination object at this location, don't even bother simulating it
+                // we know it'll fall
+                Bounds projectedBounds = new Bounds(targetPos, themeBounds.size);
+
+                if (projectedBounds.Intersects(destBounds))
+                { 
+                    Vector3 inputPoint = new Vector3(targetPos.x, destBounds.max.y, targetPos.z);
+                    Vector3 closestPoint = Physics.ClosestPoint(inputPoint,
+                        themeObj.GetComponentInChildren<Collider>(),
+                        targetPos, themeObj.transform.rotation);
+
+                    if (closestPoint.y > inputPoint.y)
                     {
-                        return;
+                        targetPos = new Vector3(targetPos.x, targetPos.y - (closestPoint.y - inputPoint.y), targetPos.z);
                     }
 
-                    vectorAction.CopyTo(lastAction, 0);
+                    if (!scenarioController.circumventEventManager)
+                    {
+                        themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
+                        PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
 
-                    Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}", string.Format("[{0}]", string.Join(",", vectorAction)));
-
-                    Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
-                    Bounds destBounds = GlobalHelper.GetObjectWorldSize(destObj);
-                    Debug.LogFormat("StackingAgent.OnActionReceived: Action received: " +
-                    	"themeBounds.center = {0}; themeBounds.size = {1}; " +
-                        "destBounds.center = {2}; destBounds.size = {3}",
-                        GlobalHelper.VectorToParsable(themeBounds.center),
-                        GlobalHelper.VectorToParsable(themeBounds.size),
-                        GlobalHelper.VectorToParsable(destBounds.center),
-                        GlobalHelper.VectorToParsable(destBounds.size));
-
-                    // convert the action value to a location on the surface of the destination object
-                    Vector3 targetPos = new Vector3(
-                        destBounds.center.x + (destBounds.size.x * ((.01f*targetOnSurface.x) - 5f)),
-                        destBounds.max.y + themeBounds.extents.y,
-                        destBounds.center.z + (destBounds.size.z * ((.01f*targetOnSurface.y) - 5f)));
-
-                    // if the the object wouldn't touch the destination object at this location, don't even bother simulating it
-                    // we know it'll fall
-                    //Bounds projectedBounds = new Bounds(targetPos, themeBounds.size);
-
-                    //if (projectedBounds.Intersects(destBounds))
-                    //{ 
-                        Vector3 inputPoint = new Vector3(targetPos.x, destBounds.max.y, targetPos.z);
-                        Vector3 closestPoint = Physics.ClosestPoint(inputPoint,
-                            themeObj.GetComponentInChildren<Collider>(),
-                            targetPos, themeObj.transform.rotation);
-
-                        if (closestPoint.y > inputPoint.y)
-                        {
-                            targetPos = new Vector3(targetPos.x, targetPos.y - (closestPoint.y - inputPoint.y), targetPos.z);
-                        }
-
-                        if (!scenarioController.circumventEventManager)
-                        {
-                            themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
-                            PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
-
-                            string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
-                            Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
-                            scenarioController.SendToEventManager(eventStr);
-                        }
-                        else
-                        {
-                            themeObj.GetComponent<Rigging>().ActivatePhysics(false);
-                            themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
-                            scenarioController.OnEventExecuting(null, null);
-                        }
-                    //}
-
-                    episodeNumActions += 1;
-                    Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumTrials = {0}", episodeNumActions);
+                        string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
+                        Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
+                        scenarioController.SendToEventManager(eventStr);
+                    }
+                    else
+                    {
+                        themeObj.GetComponent<Rigging>().ActivatePhysics(false);
+                        themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
+                        scenarioController.OnEventExecuting(null, null);
+                    }
 
                     waitingForAction = false;
                 }
                 else
                 {
-                    Debug.LogFormat("StackingAgent.OnActionReceived: Invalid action {0} - equal to {1}",
-                        string.Format("[{0}]", string.Join(",", vectorAction)),
-                        string.Format("[{0}]", string.Join(",", lastAction)));
+                    targetPos = new Vector3(targetPos.x, destBounds.center.y, targetPos.z);
+                    themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
+                    themeObj.transform.position = targetPos;
+                    constructObservation = true;
                 }
+
+                episodeNumActions += 1;
+                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumTrials = {0}", episodeNumActions);
+            }
+            else
+            {
+                Debug.LogFormat("StackingAgent.OnActionReceived: Invalid action {0} - equal to {1}",
+                    string.Format("[{0}]", string.Join(",", vectorAction)),
+                    string.Format("[{0}]", string.Join(",", lastAction)));
             }
         }
         else

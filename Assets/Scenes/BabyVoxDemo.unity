@@ -1219,6 +1219,8 @@ MonoBehaviour:
   writeOutSamples: 0
   outFileName: 
   scenarioController: {fileID: 130105524}
+  actionSpaceLow: {x: 0, y: 0}
+  actionSpaceHigh: {x: 0, y: 0}
 --- !u!114 &355840416
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4479,12 +4481,14 @@ MonoBehaviour:
   episodeMaxActions: 10
   episodeNumActions: 0
   posRewardMultiplier: 1000
-  negRewardMultiplier: 1000
+  negRewardMultiplier: 1
   observationSpaceScale: 1
   forceMultiplier: 0.00025
   writeOutSamples: 0
   outFileName: stacker-test/trial-data/081021-4obj
   scenarioController: {fileID: 130105524}
+  actionSpaceLow: {x: 0, y: 0}
+  actionSpaceHigh: {x: 1000, y: 1000}
 --- !u!114 &1759529657
 MonoBehaviour:
   m_ObjectHideFlags: 0

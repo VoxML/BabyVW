@@ -249,7 +249,13 @@ public class StackingAgent : Agent
             noisyObservation = observation.Select(o => o + (float)GaussianNoise(0, 0.1f)).ToList();
             float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? (curNumObjsStacked - lastNumObjsStacked) : (curNumObjsStacked - lastNumObjsStacked) - 1;
             reward = reward > 0 ? reward * posRewardMultiplier : reward * negRewardMultiplier;
+            reward = reward > 0 ? (reward / episodeMaxActions) * (episodeMaxActions - episodeNumActions + 1) : reward;
             Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, reward);
+            //Debug.Log(observation.Count);
+            //Debug.Log(lastObservation.Count);
+            //Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}",
+                //string.Format("{0}", string.Join(",", observation.Select(o => o.ToString()))),
+                //string.Format("{0}", string.Join(",", lastObservation.Select(o => o.ToString()))), reward);
             AddReward(reward);
             episodeTotalReward += reward;
             WriteOutSample(themeObj.transform, destObj.transform, lastAction, reward);
@@ -730,6 +736,7 @@ public class StackingAgent : Agent
         themeObj = newTheme;
 
         curNumObjsStacked = 1;
+        lastNumObjsStacked = 1;
 
         if (useVectorObservations)
         {
