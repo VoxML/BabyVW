@@ -84,15 +84,23 @@ def main():
         print("Training took %.4f seconds" % float(time.time()-start_time))
 
         if new_model_name is None:
+            # create filename: model name + date + action space + trainings steps + priors
             filename = model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
                 str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
-                "-" + str(total_timesteps)
+                "-" + str(total_timesteps) + "-" + ".".join(priors)
+            num_identical_filenames = len([f for f in os.listdir(filename.rsplit('/')[0]) if f.startswith(filename.rsplit('/')[-1])])
+            if num_identical_filenames > 0:
+                filename += "-" + str(num_identical_filenames+1)
             model.save(log_dir + "/" + filename)
             print("Model saved at", log_dir + "/" + filename)
         else:
+            # create filename: model name + date + action space + trainings steps + priors
             filename = new_model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
                 str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
-                "-" + str(total_timesteps)
+                "-" + str(total_timesteps) + "-" + ".".join(priors)
+            num_identical_filenames = len([f for f in os.listdir(filename.rsplit('/')[0]) if f.startswith(filename.rsplit('/')[-1])])
+            if num_identical_filenames > 0:
+                filename += "-" + str(num_identical_filenames+1)
             model.save(log_dir + "/" + filename)
             print("Model saved at", log_dir + "/" + filename)
 
