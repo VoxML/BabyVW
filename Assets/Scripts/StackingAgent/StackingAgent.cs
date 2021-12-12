@@ -37,13 +37,13 @@ public class StackingAgent : Agent
 
     public ScenarioController scenarioController;
 
-    Dictionary<string, int> relToIntDict = new Dictionary<string, int>()
+    Dictionary<string, int[]> relDict = new Dictionary<string, int[]>()
     {
-        { "support", 1 },
-        { "left", 2 },
-        { "right", 3 },
-        { "in_front", 4 },
-        { "behind", 5}
+        { "support", new int[]{1, 0, 0, 0, 0} },
+        { "left", new int[]{0, 1, 0, 0, 0} },
+        { "right", new int[]{0, 0, 1, 0, 0} },
+        { "in_front", new int[]{0, 0, 0, 1, 0} },
+        { "behind", new int[]{0, 0, 0, 0, 1} }
     };
 
     List<Transform> usedDestObjs = new List<Transform>();
@@ -636,15 +636,18 @@ public class StackingAgent : Agent
             List<string> rels = scenarioController.GetRelations(destObj, themeObj);
             if (rels.Count == 0)
             {
-                obs.Add(0);
+                obs.AddRange(new float[] { 0, 0, 0, 0, 0 });
             }
             else
             { 
                 foreach (string r in rels)
                 {
-                    if (relToIntDict.Keys.Contains(r))
+                    if (relDict.Keys.Contains(r))
                     {
-                        obs.Add(relToIntDict[r]*observationSpaceScale);
+                        foreach (int i in relDict[r])
+                        {
+                            obs.Add(i * observationSpaceScale);
+                        }
                     }
                 }
             }
@@ -749,15 +752,18 @@ public class StackingAgent : Agent
                 List<string> rels = scenarioController.GetRelations(destObj, themeObj);
                 if (rels.Count == 0)
                 {
-                    observation.Add(0);
+                    observation.AddRange(new float[] { 0, 0, 0, 0, 0 });
                 }
                 else
                 {
                     foreach (string r in rels)
                     {
-                        if (relToIntDict.Keys.Contains(r))
+                        if (relDict.Keys.Contains(r))
                         {
-                            observation.Add(relToIntDict[r]*observationSpaceScale);
+                            foreach (int i in relDict[r])
+                            {
+                                observation.Add(i * observationSpaceScale);
+                            }
                         }
                     }
                 }

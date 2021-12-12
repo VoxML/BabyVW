@@ -109,10 +109,10 @@ class StackerEnv(gym.Env):
         # relations only
         if self.priors == ['REL']:
             self.vector_obs_space = spaces.Box(
-                0.0,
-                float(num_relations)*obs_space_scale,
+                np.zeros(shape=(num_relations,)),
+                np.ones(shape=(num_relations,))*obs_space_scale,
                 dtype=np.float32,
-                shape=(1,)
+                shape=(5,)
             )
         
         # CoG only
