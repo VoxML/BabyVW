@@ -46,7 +46,20 @@ public class StackingAgent : Agent
         { "behind", new int[]{0, 0, 0, 0, 1} }
     };
 
-    List<Transform> usedDestObjs = new List<Transform>();
+    List<Transform> _usedDestObjs = new List<Transform>();
+    List<Transform> usedDestObjs
+    {
+        get { return _usedDestObjs; }
+        set
+        {
+            if (_usedDestObjs != value)
+            {
+                OnUsedDestObjsChanged(_usedDestObjs, value);
+            }
+            _usedDestObjs = value;
+        }
+    }
+
     List<Transform> interactableObjs;
 
     CameraSensor cameraSensor;
@@ -175,8 +188,9 @@ public class StackingAgent : Agent
         }
     }
 
+    protected int curNumObjsStacked, lastNumObjsStacked;
+
     List<float> observation, lastObservation, noisyObservation;
-    int curNumObjsStacked, lastNumObjsStacked;
     Vector2 centerOfGravity;
 
     void Start()
@@ -248,7 +262,9 @@ public class StackingAgent : Agent
         {
             observation = ConstructObservation().Select(o => (float)o).ToList();
             noisyObservation = observation.Select(o => o + (float)GaussianNoise(0, 0.1f)).ToList();
-            float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? (curNumObjsStacked - lastNumObjsStacked) : (curNumObjsStacked - lastNumObjsStacked) - 1;
+            float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? 
+                (curNumObjsStacked - lastNumObjsStacked) * (curNumObjsStacked - 1) : 
+                (curNumObjsStacked - lastNumObjsStacked) - 1;
             reward = reward > 0 ? reward * posRewardMultiplier : reward * negRewardMultiplier; // scale up
             reward = reward > 0 ? (reward / episodeMaxActions) * (episodeMaxActions - episodeNumActions + 1) : reward; // decay positive rewards
             reward = reward > 0 ? reward : reward + partialSuccessReward; // add reward for partial success, if any
@@ -257,30 +273,73 @@ public class StackingAgent : Agent
             episodeTotalReward += reward;
             WriteOutSample(themeObj.transform, destObj.transform, lastAction, reward);
 
-            if (curNumObjsStacked - lastNumObjsStacked != 0.0f)
-            {
-                if (curNumObjsStacked - lastNumObjsStacked < 0.0f)
-                {
-                    usedDestObjs = usedDestObjs.Take(usedDestObjs.Count - 1 + (int)(curNumObjsStacked - lastNumObjsStacked)).ToList();
-                    Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
-                        usedDestObjs.Select(o => o.name)));
-                }
+            Debug.LogFormat("StackingAgent.Update: themeObj = {0}; destObj = {1}", string.Format("{{{0}:{1}}}", themeObj.name, themeObj.transform.position.y),
+                string.Format("{{{0}:{1}}}", destObj.name, destObj.transform.position.y));
 
-                // figure out which is the new destination object
-                List<Transform> sortedByHeight = interactableObjs.Where(t => SurfaceClear(t.gameObject)).OrderByDescending(t => t.position.y).ToList();
-                Debug.LogFormat("StackingAgent.Update: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
+            List<Transform> sortedByHeight = interactableObjs.Where(t => SurfaceClear(t.gameObject)).OrderByDescending(t => t.position.y).ToList();
+            Debug.LogFormat("StackingAgent.Update: objects sorted by height = {0}", string.Format("[{0}]", string.Join(", ",
                     sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
 
-                GameObject newDest = sortedByHeight.First().gameObject;
+            Transform topmostObj = sortedByHeight.First();
+            RaycastHit[] hits = Physics.RaycastAll(topmostObj.position, Vector3.down, topmostObj.position.y - Constants.EPSILON);
+            Debug.LogFormat("StackingAgent.Update: hits = {0}", string.Format("[{0}]", string.Join(", ",
+                    hits.Select(h => string.Format("{{{0}:{1}}}", h.collider.name, h.transform.position.y)))));
 
-                OnDestObjChanged(destObj, newDest);
-                destObj = newDest;
+            Debug.LogFormat("StackingAgent.Update: usedDestObjs = {0}", string.Format("[{0}]", string.Join(", ",
+                    usedDestObjs.Select(o => string.Format("{{{0}:{1}}}", o.name, o.transform.position.y))))); 
 
-                if (!usedDestObjs.Contains(destObj.transform))
+            usedDestObjs = hits.Select(h => GlobalHelper.GetMostImmediateParentVoxeme(h.collider.gameObject).transform).ToList();
+
+            //GameObject newDest = sortedByHeight.Except(new List<Transform>() { themeObj.transform }).First().gameObject;
+            GameObject newDest = sortedByHeight.First().gameObject;
+
+            Debug.LogFormat("StackingAgent.Update: newDest = {0}", string.Format("{{{0}:{1}}}", newDest.name, newDest.transform.position.y));
+
+            if (newDest != destObj)
+            {
+                if (Mathf.Abs(newDest.transform.position.y - destObj.transform.position.y) < Constants.EPSILON)
                 {
-                    usedDestObjs.Add(destObj.transform);
+                    newDest = destObj;
                 }
             }
+
+            OnDestObjChanged(destObj, newDest);
+            destObj = newDest;
+
+            if (!usedDestObjs.Contains(destObj.transform))
+            {
+                usedDestObjs.Add(destObj.transform);
+                OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
+            }
+
+            //if (curNumObjsStacked - lastNumObjsStacked != 0.0f)
+            //{
+            //    Debug.LogFormat("StackingAgent.Update: curNumObjsStacked = {0}; lastNumObjsStacked = {1}",
+            //        curNumObjsStacked, lastNumObjsStacked);
+            //    if (curNumObjsStacked - lastNumObjsStacked <= 0.0f)
+            //    {
+            //        Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
+            //            usedDestObjs.Select(o => o.name)));
+            //        usedDestObjs = usedDestObjs.Take(usedDestObjs.Count - 1 + (int)(curNumObjsStacked - lastNumObjsStacked)).ToList();
+            //        Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
+            //            usedDestObjs.Select(o => o.name)));
+            //    }
+
+            //    // figure out which is the new destination object
+            //    sortedByHeight = interactableObjs.Where(t => SurfaceClear(t.gameObject)).OrderByDescending(t => t.position.y).ToList();
+            //    Debug.LogFormat("StackingAgent.Update: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
+            //        sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
+
+            //    GameObject newDest = sortedByHeight.First().gameObject;
+
+            //    OnDestObjChanged(destObj, newDest);
+            //    destObj = newDest;
+
+            //    if (!usedDestObjs.Contains(destObj.transform))
+            //    {
+            //        usedDestObjs.Add(destObj.transform);
+            //    }
+            //}
 
             if (curNumObjsStacked == interactableObjs.Count)
             {
@@ -455,7 +514,8 @@ public class StackingAgent : Agent
         // calc center of stack bounds
         // calc center of theme object bounds
         // CoG = center of theme bounds - center of stack bounds
-        Debug.LogFormat("StackingAgent.CalcCenterOfGravity: size of stack = {0}", usedDestObjs.Count);
+        Debug.LogFormat("StackingAgent.CalcCenterOfGravity: stack = [{0}]", string.Join(", ",
+                        usedDestObjs.Select(o => o.name)));
 
         Bounds stackBounds = GlobalHelper.GetObjectWorldSize(usedDestObjs.Select(t => t.gameObject).ToList());
         Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
@@ -606,12 +666,22 @@ public class StackingAgent : Agent
         Debug.LogFormat("StackingAgent.SelectThemeObject: object sequence = {0}", string.Format("[{0}]", string.Join(",",
             sortedByHeight.Select(t => string.Format("({0}, {1})", t.name, t.transform.position.y)))));
 
-        theme = sortedByHeight.First().gameObject;
+        try
+        { 
+            theme = sortedByHeight.First().gameObject;
 
-        themeStartRotation = new Vector3(theme.transform.eulerAngles.x > 180.0f ? theme.transform.eulerAngles.x - 360.0f : theme.transform.eulerAngles.x,
-            theme.transform.eulerAngles.y > 180.0f ? theme.transform.eulerAngles.y - 360.0f : theme.transform.eulerAngles.y,
-            theme.transform.eulerAngles.z > 180.0f ? theme.transform.eulerAngles.z - 360.0f : theme.transform.eulerAngles.z);
+            themeStartRotation = new Vector3(theme.transform.eulerAngles.x > 180.0f ? theme.transform.eulerAngles.x - 360.0f : theme.transform.eulerAngles.x,
+                theme.transform.eulerAngles.y > 180.0f ? theme.transform.eulerAngles.y - 360.0f : theme.transform.eulerAngles.y,
+                theme.transform.eulerAngles.z > 180.0f ? theme.transform.eulerAngles.z - 360.0f : theme.transform.eulerAngles.z);
 
+        }
+        catch (Exception ex)
+        {
+            if (ex is InvalidOperationException)
+            {
+                scenarioController.OnForceEndEpisode(this, null);  // rather inelegant solution
+            }
+        }
         return theme;
     }
 
@@ -621,9 +691,13 @@ public class StackingAgent : Agent
         List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
         Debug.LogFormat("StackingAgent.ConstructObservation: [{0}]", string.Join(",", sortedByHeight.Select(o => o.position.y).ToList()));
 
+        lastNumObjsStacked = curNumObjsStacked;
+
         // take the topmost object and round its y-coord up to nearest int
         //  multiply by 10 (blocks are .1 x .1 x .1)
         curNumObjsStacked = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
+
+        Debug.LogFormat("StackingAgent.ConstructObservation: curNumObjsStacked = {0}; lastNumObjsStacked = {1}", curNumObjsStacked, lastNumObjsStacked);
 
         List<float> obs = new List<float>();
         if (useHeight)
@@ -875,7 +949,7 @@ public class StackingAgent : Agent
     }
 
     /// <summary>
-    /// Triggered when the themeObj flag changes
+    /// Triggered when the themeObj changes
     /// </summary>
     // IN: oldVal -- previous value of themeObj
     //      newVal -- new or current value of themeObj
@@ -886,7 +960,7 @@ public class StackingAgent : Agent
     }
 
     /// <summary>
-    /// Triggered when the destObj flag changes
+    /// Triggered when the destObj changes
     /// </summary>
     // IN: oldVal -- previous value of destObj
     //      newVal -- new or current value of destObj
@@ -894,6 +968,20 @@ public class StackingAgent : Agent
     {
         Debug.Log(string.Format("==================== destObj changed ==================== {0}->{1}",
             oldVal == null ? "NULL" : oldVal.name, newVal == null ? "NULL" : newVal.name));
+    }
+
+    /// <summary>
+    /// Triggered when usedDestObjs changes
+    /// </summary>
+    // IN: oldVal -- previous value of usedDestObjs
+    //      newVal -- new or current value of usedDestObjs
+    protected void OnUsedDestObjsChanged(List<Transform> oldVal, List<Transform> newVal)
+    {
+        Debug.Log(string.Format("==================== usedDestObjs changed ==================== {0}->{1}",
+            string.Format("[{0}]", string.Join(", ",
+                    oldVal.Select(o => string.Format("{{{0}:{1}}}", o.name, o.transform.position.y)))),
+            string.Format("[{0}]", string.Join(", ",
+                    newVal.Select(o => string.Format("{{{0}:{1}}}", o.name, o.transform.position.y))))));
     }
 
     /// <summary>

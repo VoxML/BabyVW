@@ -149,14 +149,14 @@ public class ScenarioController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (savePostEventImage)
-        {
-            // save the "after wait" image
-            imageCapture.SaveRGB("RGB3.png");   // TODO: create unique filename
+        //if (savePostEventImage)
+        //{
+        //    // save the "after wait" image
+        //    imageCapture.SaveRGB("RGB3.png");   // TODO: create unique filename
 
-            // reset flag
-            savePostEventImage = false;
-        }
+        //    // reset flag
+        //    savePostEventImage = false;
+        //}
 
         if (!usingRLClient)
         {
@@ -384,11 +384,11 @@ public class ScenarioController : MonoBehaviour
     void ExecutingEvent(object sender, EventArgs e)
     {
         Debug.LogFormat("ScenarioController.ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
-        if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
-        {
-            // save the "before event" image
-            imageCapture.SaveRGB("RGB1.png");   // TODO: create unique filename
-        }
+        //if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
+        //{
+        //    // save the "before event" image
+        //    imageCapture.SaveRGB("RGB1.png");   // TODO: create unique filename
+        //}
 
         OnEventExecuting(this, null);
     }
@@ -403,7 +403,7 @@ public class ScenarioController : MonoBehaviour
         postEventWaitTimer.Enabled = true;
 
         // save the "after event" image
-        imageCapture.SaveRGB("RGB2.png");   // TODO: create unique filename
+        //imageCapture.SaveRGB("RGB2.png");   // TODO: create unique filename
     }
 
     void PostEventWaitComplete(object sender, ElapsedEventArgs e)
@@ -425,7 +425,7 @@ public class ScenarioController : MonoBehaviour
             GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Position),
             GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Direction),
             ((CalculatedPositionArgs)e).Distance);
-        OnForceEndEpisode(this, null);
+        OnForceEndEpisode(this, null);  // rather inelegant solution
     }
 
     bool PointIsInCameraView(Vector3 point, Camera cam)

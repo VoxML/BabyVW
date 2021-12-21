@@ -36,17 +36,23 @@ public class ContinuousStackingAgent : StackingAgent
 
                 vectorAction.CopyTo(lastAction, 0);
 
-                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}", string.Format("[{0}]", string.Join(",", vectorAction)));
+                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}, themeObs = {1}, destObj = {2}",
+                    string.Format("[{0}]", string.Join(",", vectorAction)), themeObj.name, destObj.name);
 
                 Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
                 Bounds destBounds = GlobalHelper.GetObjectWorldSize(destObj);
                 Debug.LogFormat("StackingAgent.OnActionReceived: Action received: " +
-                	"themeBounds.center = {0}; themeBounds.size = {1}; " +
-                    "destBounds.center = {2}; destBounds.size = {3}",
+                	"[{0}] themeBounds.center = {1}; themeBounds.size = {2}; " +
+                    "[{3}] destBounds.center = {4}; destBounds.size = {5}",
+                    themeObj.name,
                     GlobalHelper.VectorToParsable(themeBounds.center),
                     GlobalHelper.VectorToParsable(themeBounds.size),
+                    destObj.name,
                     GlobalHelper.VectorToParsable(destBounds.center),
                     GlobalHelper.VectorToParsable(destBounds.size));
+
+                if (themeBounds.center.y < 0.04f)
+                    Debug.Break();
 
                 // convert the action value to a location on the surface of the destination object
                 Vector3 targetPos = new Vector3(
@@ -83,6 +89,9 @@ public class ContinuousStackingAgent : StackingAgent
                     }
                     else
                     {
+                        //themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
+                        //PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
+
                         themeObj.GetComponent<Rigging>().ActivatePhysics(false);
                         themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
                         scenarioController.OnEventExecuting(null, null);
@@ -97,11 +106,16 @@ public class ContinuousStackingAgent : StackingAgent
                     targetPos = new Vector3(targetPos.x, destBounds.center.y, targetPos.z);
                     themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
                     themeObj.transform.position = targetPos;
+                    //resolvePhysics = true;
+                    lastNumObjsStacked = curNumObjsStacked;
+                    scenarioController.OnEventCompleted(null, null);
+                    themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
+                    PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
                     constructObservation = true;
                 }
 
                 episodeNumActions += 1;
-                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumTrials = {0}", episodeNumActions);
+                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumActions = {0}", episodeNumActions);
             }
             else
             {
