@@ -115,11 +115,17 @@ def main():
         env.reset()
         obs = env._env._env_state[env.behavior_name][0].obs[0]
 
-        i = 0
+        i = 1
         ep_reward = 0
         total_reward = 0
         max_reward = 0
         total_episodes = 0
+        timesteps = []
+        episodes = []
+        reward_per_timestep = []
+        reward_per_episode = []
+        ts_reward_mean = []
+        ep_reward_mean = []
         while True:
             print("\nTesting %s" % i)
             print("obs:", obs)
@@ -129,9 +135,15 @@ def main():
             print("Reward: %s\t Done: %s" % (reward,done))
             total_reward += reward
             ep_reward += reward
+            timesteps.append(i)
+            reward_per_timestep.append(reward)
+            ts_reward_mean.append(float(total_reward)/float(i))
             if done:
                 max_reward = ep_reward if ep_reward > max_reward else max_reward
                 total_episodes += 1
+                episodes.append(total_episodes)
+                reward_per_episode.append(ep_reward)
+                ep_reward_mean.append(float(total_reward)/float(total_episodes))
                 ep_reward = 0
                 # reset the environment and get the resulting observation
                 env.reset()
@@ -146,17 +158,38 @@ def main():
 #                    i += 1
 #            elif vector_obs:
 #                if not np.allclose(obs, last_obs):
-            i += 1
                 
             if i == total_timesteps:
                 break
                 
+            i += 1
+
         print("\n===== Summary =====")
         print("Tested for %s timesteps" % i)
         print("\t%s episodes" % total_episodes)
         print("\tTotal reward: %s" % total_reward)
         print("\tMax reward achieved: %s" % max_reward)
         print("\tMean reward per episode: %.4f" % (float(total_reward)/float(total_episodes),))
+        
+        plt.figure(figsize=(16,6))
+        plt.subplot(1, 2, 1)
+        plt.plot(np.array(timesteps),np.array(reward_per_timestep), label="Raw Reward")
+        plt.plot(np.array(timesteps),np.array(ts_reward_mean), label="Mean reward")
+        plt.xlabel("Timesteps")
+        plt.ylabel("Reward")
+        plt.legend(loc="upper left")
+        plt.ylim(-100, 1200.0)
+        plt.gca().yaxis.grid()
+        
+        plt.subplot(1, 2, 2)
+        plt.plot(np.array(episodes),np.array(reward_per_episode), label="Raw Reward")
+        plt.plot(np.array(episodes),np.array(ep_reward_mean), label="Mean reward")
+        plt.xlabel("Episodes")
+        plt.ylabel("Reward")
+        plt.legend(loc="upper left")
+        plt.ylim(-100, 1200.0)
+        plt.gca().yaxis.grid()
+        plt.show()
 
 if __name__ == "__main__":
     main()
