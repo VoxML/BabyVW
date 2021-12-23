@@ -51,8 +51,8 @@ public class ContinuousStackingAgent : StackingAgent
                     GlobalHelper.VectorToParsable(destBounds.center),
                     GlobalHelper.VectorToParsable(destBounds.size));
 
-                if (themeBounds.center.y < 0.04f)
-                    Debug.Break();
+                //if (themeBounds.center.y < 0.04f)
+                //    Debug.Break();
 
                 // convert the action value to a location on the surface of the destination object
                 Vector3 targetPos = new Vector3(

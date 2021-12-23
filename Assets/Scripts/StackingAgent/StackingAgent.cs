@@ -405,7 +405,8 @@ public class StackingAgent : Agent
             { "Cube", 0 },
             { "Sphere", 1 },
             { "Cylinder", 2 },
-            { "Capsule", 3 }
+            { "Capsule", 3 },
+            { "SmallCube", 4 }
         };
 
         Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,
@@ -413,6 +414,7 @@ public class StackingAgent : Agent
             themeTransform.eulerAngles.z > 180.0f ? themeTransform.eulerAngles.z - 360.0f : themeTransform.eulerAngles.z);
         float angleOffsetStart = Vector3.Angle(Vector3.up, Quaternion.Euler(themeStartRotation) * Vector3.up);
         float angleOffsetEnd = Vector3.Angle(Vector3.up, themeTransform.up);
+        Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
 
         float[] arr1 = new float[] {
             episodeCount,
@@ -429,15 +431,20 @@ public class StackingAgent : Agent
             angleOffsetEnd * Mathf.Deg2Rad
             };
 
-        float[] arr4 = noisyVectors ? noisyObservation.ToArray() : observation.ToArray();
+        float[] arr4 = new float[] {
+                themeBounds.center.x,themeBounds.center.y,themeBounds.center.z,
+                themeBounds.size.x,themeBounds.size.y,themeBounds.size.z
+            };
 
-        float[] arr5 = new float[] {
+        float[] arr5 = noisyVectors ? noisyObservation.ToArray() : observation.ToArray();
+
+        float[] arr6 = new float[] {
             reward,
             episodeTotalReward,
             episodeTotalReward/episodeNumActions
             };
 
-        float[] arr = arr1.Concat(arr2).Concat(arr3).Concat(arr4).Concat(arr5).ToArray();
+        float[] arr = arr1.Concat(arr2).Concat(arr3).Concat(arr4).Concat(arr5).Concat(arr6).ToArray();
         string csv = string.Join(",", arr);
         Debug.LogFormat("WriteOutSample: {0}", csv);
 
@@ -447,10 +454,11 @@ public class StackingAgent : Agent
             {
                 outFileName = string.Format("{0}.csv", outFileName);
             }
-            string dirPath = new DirectoryInfo(outFileName).Name;
+            string dirPath = Path.GetDirectoryName(outFileName);
 
             if (!Directory.Exists(dirPath))
             {
+                Debug.LogFormat("WriteOutSample: creating directory at {0}", dirPath);
                 DirectoryInfo dirInfo = Directory.CreateDirectory(dirPath);
             }
 
@@ -693,9 +701,19 @@ public class StackingAgent : Agent
 
         lastNumObjsStacked = curNumObjsStacked;
 
+        Transform topmostObj = sortedByHeight.First();
+        Debug.LogFormat("StackingAgent.ConstructObservation: topmostObj = {0}", topmostObj.name);
+        RaycastHit[] hits = Physics.RaycastAll(topmostObj.position, Vector3.down, topmostObj.position.y-Constants.EPSILON);
+        Debug.LogFormat("StackingAgent.ConstructObservation: hits = {0}", string.Format("[{0}]", string.Join(", ",
+            hits.Select(h => string.Format("{{{0}:{1}}}", h.collider.name, h.transform.position.y)))));
+        curNumObjsStacked = hits.Length+1;
+
         // take the topmost object and round its y-coord up to nearest int
         //  multiply by 10 (blocks are .1 x .1 x .1)
-        curNumObjsStacked = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
+        //Transform topmostObj = sortedByHeight.First();
+        //Transform secondObj = sortedByHeight[1];
+        //(int)Mathf.Ceil((topmostObj.position.y - secondObj.position.y) / topmostObj.localScale.y);
+        //curNumObjsStacked = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
 
         Debug.LogFormat("StackingAgent.ConstructObservation: curNumObjsStacked = {0}; lastNumObjsStacked = {1}", curNumObjsStacked, lastNumObjsStacked);
 
