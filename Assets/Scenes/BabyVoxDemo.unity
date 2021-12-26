@@ -534,7 +534,7 @@ MonoBehaviour:
   objectTypes: {fileID: 784435535}
   interactableObjectTypes:
   - {fileID: 1242741016}
-  - {fileID: 1387273658}
+  - {fileID: 1242741016}
   numTotalObjs: 2
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
@@ -4492,7 +4492,7 @@ MonoBehaviour:
   observationSpaceScale: 1
   forceMultiplier: 0.00025
   writeOutSamples: 0
-  outFileName: stacker-test/trial-data/scraps
+  outFileName: stacker-test/trial-data/122521-2cubes
   scenarioController: {fileID: 130105524}
   actionSpaceLow: {x: 0, y: 0}
   actionSpaceHigh: {x: 1000, y: 1000}

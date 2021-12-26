@@ -69,6 +69,8 @@ public class StackingAgent : Agent
 
     Vector3 themeStartRotation;
 
+    Vector3 lastForceApplied;
+
     int defaultMaxStep;
 
     float episodeTotalReward;
@@ -432,19 +434,24 @@ public class StackingAgent : Agent
             };
 
         float[] arr4 = new float[] {
-                themeBounds.center.x,themeBounds.center.y,themeBounds.center.z,
-                themeBounds.size.x,themeBounds.size.y,themeBounds.size.z
+            lastForceApplied.x, lastForceApplied.y, lastForceApplied.z
+        }   ;
+
+        float[] arr5 = new float[] {
+            themeBounds.center.x,themeBounds.center.y,themeBounds.center.z,
+            themeBounds.size.x,themeBounds.size.y,themeBounds.size.z
             };
 
-        float[] arr5 = noisyVectors ? noisyObservation.ToArray() : observation.ToArray();
+        float[] arr6 = noisyVectors ? noisyObservation.ToArray() : observation.ToArray();
 
-        float[] arr6 = new float[] {
+        float[] arr7 = new float[] {
             reward,
             episodeTotalReward,
             episodeTotalReward/episodeNumActions
             };
 
-        float[] arr = arr1.Concat(arr2).Concat(arr3).Concat(arr4).Concat(arr5).Concat(arr6).ToArray();
+        float[] arr = arr1.Concat(arr2).Concat(arr3).Concat(arr4).
+            Concat(arr5).Concat(arr6).Concat(arr7).ToArray();
         string csv = string.Join(",", arr);
         Debug.LogFormat("WriteOutSample: {0}", csv);
 
@@ -633,6 +640,8 @@ public class StackingAgent : Agent
 
         Debug.LogFormat("ApplyForce: Applying force {0} to GameObject {1} (Rigidbody {2})",
             GlobalHelper.VectorToParsable(force), themeObj.name, themeRigidbody.name);
+
+        lastForceApplied = force;
 
         themeRigidbody.AddForce(force, ForceMode.Impulse);
     }
