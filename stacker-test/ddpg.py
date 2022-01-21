@@ -53,7 +53,7 @@ def main():
 
     #env = make_vec_env(lambda:env, n_envs=2)
 
-    #env = Monitor(env, log_dir)
+    env = Monitor(env, log_dir)
 
     print("observation_space:", env.observation_space.shape)
     print("action_space_high:", env.action_space.high)
@@ -174,7 +174,7 @@ def main():
         plt.figure(figsize=(16,6))
         plt.subplot(1, 2, 1)
         plt.plot(np.array(timesteps),np.array(reward_per_timestep), label="Raw Reward")
-        plt.plot(np.array(timesteps),np.array(ts_reward_mean), label="Mean reward")
+        plt.plot(np.array(timesteps),np.array(ts_reward_mean), label="Mean Reward")
         plt.xlabel("Timesteps")
         plt.ylabel("Reward")
         plt.legend(loc="upper left")
@@ -182,8 +182,8 @@ def main():
         plt.gca().yaxis.grid()
         
         plt.subplot(1, 2, 2)
-        plt.plot(np.array(episodes),np.array(reward_per_episode), label="Raw Reward")
-        plt.plot(np.array(episodes),np.array(ep_reward_mean), label="Mean reward")
+        plt.plot(np.array(episodes),np.array(reward_per_episode), label="Episode Cumulative Reward")
+        plt.plot(np.array(episodes),np.array(ep_reward_mean), label="Mean Reward")
         plt.xlabel("Episodes")
         plt.ylabel("Reward")
         plt.legend(loc="upper left")
