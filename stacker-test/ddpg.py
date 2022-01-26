@@ -53,7 +53,7 @@ def main():
 
     #env = make_vec_env(lambda:env, n_envs=2)
 
-    env = Monitor(env, log_dir)
+    #env = Monitor(env, log_dir)
 
     print("observation_space:", env.observation_space.shape)
     print("action_space_high:", env.action_space.high)
@@ -88,7 +88,8 @@ def main():
             filename = model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
                 str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
                 "-" + str(total_timesteps) + "-" + ".".join(priors)
-            num_identical_filenames = len([f for f in os.listdir(filename.rsplit('/')[0]) if f.startswith(filename.rsplit('/')[-1])])
+            num_identical_filenames = len([f for f in os.listdir((log_dir+"/"+filename).rsplit('/')[0]) \
+                if f.startswith((log_dir+"/"+filename).rsplit('/')[-1])])
             if num_identical_filenames > 0:
                 filename += "-" + str(num_identical_filenames+1)
             model.save(log_dir + "/" + filename)
@@ -98,7 +99,8 @@ def main():
             filename = new_model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
                 str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
                 "-" + str(total_timesteps) + "-" + ".".join(priors)
-            num_identical_filenames = len([f for f in os.listdir(filename.rsplit('/')[0]) if f.startswith(filename.rsplit('/')[-1])])
+            num_identical_filenames = len([f for f in os.listdir((log_dir+"/"+filename).rsplit('/')[0]) \
+                if f.startswith((log_dir+"/"+filename).rsplit('/')[-1])])
             if num_identical_filenames > 0:
                 filename += "-" + str(num_identical_filenames+1)
             model.save(log_dir + "/" + filename)
