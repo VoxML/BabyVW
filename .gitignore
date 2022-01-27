@@ -173,5 +173,8 @@ local_config
 # ignore virtual environment
 ml-agents*
 
+# ignore Tensorboard log directories
+stacker-agent/stacker
+
 # ignore .ipynb_checkpoints
 .ipynb_checkpoints
