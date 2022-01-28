@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.44657874, g: 0.49641275, b: 0.5748172, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657815, g: 0.49641192, b: 0.57481617, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -534,12 +534,13 @@ MonoBehaviour:
   objectTypes: {fileID: 784435535}
   interactableObjectTypes:
   - {fileID: 1242741016}
-  - {fileID: 1242741016}
+  - {fileID: 1612746825}
   numTotalObjs: 2
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
   circumventEventManager: 1
+  saveImages: 0
   postEventWaitTimerTime: 1000
   timeScale: 100
 --- !u!4 &130105525
@@ -2152,6 +2153,7 @@ Transform:
   m_Children:
   - {fileID: 619974286}
   - {fileID: 887436146}
+  - {fileID: 1213012812}
   m_Father: {fileID: 0}
   m_RootOrder: 32
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3023,6 +3025,67 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f9df3ca44fd244b7b6bf7d4c26ecc8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1213012811
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1213012812}
+  - component: {fileID: 1213012813}
+  m_Layer: 0
+  m_Name: Stochastic
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1213012812
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213012811}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 619804272}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1213012813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213012811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e166f438d446b44e3a1790991b423b04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  themeObj: {fileID: 0}
+  destObj: {fileID: 0}
+  observationSize: 3
+  useVectorObservations: 1
+  noisyVectors: 0
+  useHeight: 1
+  useRelations: 0
+  useCenterOfGravity: 1
+  maxEpisodes: 100
+  episodeCount: 0
+  episodeMaxActions: 1
+  episodeNumActions: 0
+  observationSpaceScale: 1
+  forceMultiplier: 0.00025
+  saveImages: 0
+  writeOutSamples: 1
+  outFileName: stacker-agent/analysis/trial-data/012822-cube_sphere-stochastic
+  scenarioController: {fileID: 130105524}
 --- !u!1 &1236214448
 GameObject:
   m_ObjectHideFlags: 0
@@ -4492,7 +4555,7 @@ MonoBehaviour:
   observationSpaceScale: 1
   forceMultiplier: 0.00025
   writeOutSamples: 0
-  outFileName: stacker-test/trial-data/122521-2cubes
+  outFileName: stacker-agent/analysis/trial-data/
   scenarioController: {fileID: 130105524}
   actionSpaceLow: {x: 0, y: 0}
   actionSpaceHigh: {x: 1000, y: 1000}
