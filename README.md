@@ -24,4 +24,28 @@ $ conda activate ml-agents
 (ml-agents) $ pip install notebook
 ```
 
-On new Silicon Macs with the M1 chip, you can create the environment in one command by running `conda create --name ml-agents --file ml-agents-conda-mac-m1.txt`.
+## Additional Dependencies (optional)
+
+The BabyVW learning environment uses Stable-Baselines3, which is written using PyTorch, but some minor functionality, such as converting SB3 TensorBoard plots to PyPlot plots, requires TensorFlow. To use this functionality on:
+
+### Silicon Macs with the M1 chip:
+```
+(ml-agents) $ conda install -c apple tensorflow-deps
+(ml-agents) $ pip install tensorflow-macos
+(ml-agents) $ pip install tensorflow-metal
+```
+
+### All other systems:
+```
+(ml-agents) $ pip install tensorflow
+```
+
+The main training and testing pipeline should work fine without these dependencies.
+
+## Entire Environments
+
+You can create the entire environment (including optional dependencies) in one command by running:
+
+* (On M1 Macs) `conda create --name ml-agents --file ml-agents-conda-mac-m1.txt`.
+* (On Intel Macs) `conda create --name ml-agents --file ml-agents-conda-mac-intel.txt`.
+* (On Windows) `conda create --name ml-agents --file ml-agents-conda-win.txt`.
