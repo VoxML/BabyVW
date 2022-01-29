@@ -37,7 +37,7 @@ The BabyVW learning environment uses Stable-Baselines3, which is written using P
 
 ### All other systems:
 ```
-(ml-agents) $ pip install tensorflow-macos
+(ml-agents) $ pip install tensorflow
 ```
 
 ## Entire Environments
