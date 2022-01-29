@@ -44,6 +44,6 @@ The BabyVW learning environment uses Stable-Baselines3, which is written using P
 
 You can create the entire environment in one command by running:
 
-(On M1 Macs) `conda create --name ml-agents --file ml-agents-conda-mac-m1.txt`.
-(On Intel Macs) `conda create --name ml-agents --file ml-agents-conda-mac-intel.txt`.
-(On Windows) `conda create --name ml-agents --file ml-agents-conda-win.txt`.
+* (On M1 Macs) `conda create --name ml-agents --file ml-agents-conda-mac-m1.txt`.
+* (On Intel Macs) `conda create --name ml-agents --file ml-agents-conda-mac-intel.txt`.
+* (On Windows) `conda create --name ml-agents --file ml-agents-conda-win.txt`.
