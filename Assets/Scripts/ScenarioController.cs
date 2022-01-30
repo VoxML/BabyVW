@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Timers;
 
@@ -30,6 +31,8 @@ public class ScenarioController : MonoBehaviour
     public bool circumventEventManager;
     public bool saveImages;
 
+    public string imagesDest;
+
     // editable field: how long do we wait after an event is completed
     //  to assess the "post-event" consequences (e.g., did our structure fall?)
     public int postEventWaitTimerTime;
@@ -52,8 +55,20 @@ public class ScenarioController : MonoBehaviour
 
     bool objectsInited;
 
-    bool savePostEventImage = false;
-    
+    bool _savePostEventImage = false;
+    public bool savePostEventImage
+    {
+        get { return _savePostEventImage; }
+        set
+        {
+            if (_savePostEventImage != value)
+            {
+                OnSavePostEventImageChanged(_savePostEventImage, value);
+            }
+            _savePostEventImage = value;
+        }
+    }
+
     Dictionary<string, string> objectToVoxemePredMap = new Dictionary<string, string>()
     {
         { "Cube","block" },
@@ -151,13 +166,17 @@ public class ScenarioController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //if (savePostEventImage)
-        //{
-        //    // save the "after wait" image
-        //    imageCapture.SaveRGB("RGB3.png");   // TODO: create unique filename
+        //if (saveImages)
+        //{ 
+        //    if (savePostEventImage)
+        //    {
+        //        // save the "after wait" image
+        //        imageCapture.SaveRGB(string.Format("{0}/{1}.png",
+        //                imagesDest, DateTime.Now.ToString("yyyyMMddHHmmss")));
 
-        //    // reset flag
-        //    savePostEventImage = false;
+        //        // reset flag
+        //        savePostEventImage = false;
+        //    }
         //}
 
         if (!usingRLClient)
@@ -172,6 +191,41 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
+    public void SavePostEventImage(string filenamePrefix = "")
+    {
+        if (!Directory.Exists(imagesDest))
+        {
+            Debug.LogFormat("SavePostEventImage: creating directory at {0}", imagesDest);
+            DirectoryInfo dirInfo = Directory.CreateDirectory(imagesDest);
+        }
+
+        DirectoryInfo dir = new DirectoryInfo(imagesDest);
+
+        string filename;
+
+        if (filenamePrefix == string.Empty)
+        {
+            filename = DateTime.Now.ToString("yyyyMMddHHmmss");
+        }
+        else
+        {
+            filename = filenamePrefix;
+        }
+
+        string path = string.Format("{0}/{1}.png",
+                imagesDest, filename);
+
+        int num = dir.GetFiles("*.png").Where(f => f.Name.StartsWith(filename)).ToList().Count;
+
+        if (num > 0)
+        {
+            path = string.Format("{0}-{1}", path.Replace(".png",""), num + 1);
+        }
+
+        // save the "after wait" image
+        imageCapture.SaveRGB(path);
+    }
+
     public void PlaceRandomly(GameObject surface)
     {
         List<GameObject> instantiatedVoxemeObjs = interactableObjects.GetComponentsInChildren<Voxeme>().Select(v => v.gameObject).ToList();
@@ -180,7 +234,6 @@ public class ScenarioController : MonoBehaviour
             objSelector.allVoxemes.Remove(instantiatedVoxemeObjs[i].GetComponent<Voxeme>());
             instantiatedAttributes[instantiatedVoxemeObjs[i].transform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]].Clear();
             Destroy(interactableObjects.GetComponentsInChildren<Voxeme>().Select(v => v.gameObject).ToList()[i]);
-            
         }
 
         relationTracker.relations.Clear();
@@ -386,11 +439,16 @@ public class ScenarioController : MonoBehaviour
     void ExecutingEvent(object sender, EventArgs e)
     {
         Debug.LogFormat("ScenarioController.ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
-        //if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
-        //{
-        //    // save the "before event" image
-        //    imageCapture.SaveRGB("RGB1.png");   // TODO: create unique filename
-        //}
+
+        if (saveImages)
+        {
+            if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
+            {
+                // save the "before event" image
+                imageCapture.SaveRGB(string.Format("{0}/{1}.png",
+                    imagesDest, DateTime.Now.ToString("yyyyMMddHHmmss")));
+            }
+        }
 
         OnEventExecuting(this, null);
     }
@@ -404,8 +462,12 @@ public class ScenarioController : MonoBehaviour
         // start the wait timer
         postEventWaitTimer.Enabled = true;
 
-        // save the "after event" image
-        //imageCapture.SaveRGB("RGB2.png");   // TODO: create unique filename
+        if (saveImages)
+        {
+            //save the "after event" image
+            imageCapture.SaveRGB(string.Format("{0}/{1}.png",
+                imagesDest, DateTime.Now.ToString("yyyyMMddHHmmss")));
+        }
     }
 
     void PostEventWaitComplete(object sender, ElapsedEventArgs e)
@@ -414,10 +476,13 @@ public class ScenarioController : MonoBehaviour
         postEventWaitTimer.Interval = postEventWaitTimerTime;
         postEventWaitTimer.Enabled = false;
 
-        // set flag
-        savePostEventImage = true;
-
         OnPostEventWaitCompleted(this, null);
+
+        // set flag
+        if (objectsInited)
+        {
+            savePostEventImage = true;
+        }
     }
 
     void InvalidPosition(object sender, EventArgs e)
@@ -459,5 +524,15 @@ public class ScenarioController : MonoBehaviour
     public bool IsValidAction(Vector2 action)
     {
         return !action.Equals(new Vector2(-Mathf.Infinity, -Mathf.Infinity));
+    }
+
+    /// <summary>
+    /// Triggered when the savePostEventImage flag changes
+    /// </summary>
+    // IN: oldVal -- previous value of savePostEventImage
+    //      newVal -- new or current value of savePostEventImage
+    protected void OnSavePostEventImageChanged(bool oldVal, bool newVal)
+    {
+        Debug.Log(string.Format("==================== savePostEventImage flag changed ==================== {0}->{1}", oldVal, newVal));
     }
 }

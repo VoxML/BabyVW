@@ -237,8 +237,8 @@ public class StochasticAgent : MonoBehaviour
         if (running && waitingForAction && !resolvePhysics && !endEpisode)
         {
             float[] action = new float[] {
-                RandomHelper.RandomFloat(-1.0f, 1.0f, (int)(RandomHelper.RangeFlags.MinInclusive & RandomHelper.RangeFlags.MaxInclusive)),
-                RandomHelper.RandomFloat(-1.0f, 1.0f, (int)(RandomHelper.RangeFlags.MinInclusive & RandomHelper.RangeFlags.MaxInclusive))
+                RandomHelper.RandomFloat(-0.5f, 0.5f, (int)(RandomHelper.RangeFlags.MinInclusive & RandomHelper.RangeFlags.MaxInclusive)),
+                RandomHelper.RandomFloat(-0.5f, 0.5f, (int)(RandomHelper.RangeFlags.MinInclusive & RandomHelper.RangeFlags.MaxInclusive))
             };
             OnActionReceived(this, new VectorActionEventArgs(action));
         }
@@ -308,12 +308,15 @@ public class StochasticAgent : MonoBehaviour
             if (curNumObjsStacked == interactableObjs.Count)
             {
                 Debug.LogFormat("StochasticAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
+
                 endEpisode = true;
             }
             else if (episodeNumActions >= episodeMaxActions)
             {
                 endEpisode = true;
             }
+
+            scenarioController.SavePostEventImage(string.Format("{0}{1}",episodeCount,episodeNumActions));
 
             constructObservation = false;
         }
@@ -393,13 +396,6 @@ public class StochasticAgent : MonoBehaviour
             };
 
         float[] arr6 = noisyVectors ? noisyObservation.ToArray() : observation.ToArray();
-
-        Debug.Log(arr1);
-        Debug.Log(arr2);
-        Debug.Log(arr3);
-        Debug.Log(arr4);
-        Debug.Log(arr5);
-        Debug.Log(arr6);
 
         float[] arr = arr1.Concat(arr2).Concat(arr3).Concat(arr4).
             Concat(arr5).Concat(arr6).ToArray();
@@ -842,6 +838,9 @@ public class StochasticAgent : MonoBehaviour
                 // if the the object wouldn't touch the destination object at this location, don't even bother simulating it
                 // we know it'll fall
                 Bounds projectedBounds = new Bounds(targetPos, themeBounds.size);
+                projectedBounds.size = new Vector3(projectedBounds.size.x + Constants.EPSILON,
+                    projectedBounds.size.y + Constants.EPSILON,
+                    projectedBounds.size.z + Constants.EPSILON);
 
                 if (projectedBounds.Intersects(destBounds))
                 {

@@ -534,13 +534,14 @@ MonoBehaviour:
   objectTypes: {fileID: 784435535}
   interactableObjectTypes:
   - {fileID: 1242741016}
-  - {fileID: 1612746825}
+  - {fileID: 1242741016}
   numTotalObjs: 2
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
   circumventEventManager: 1
   saveImages: 0
+  imagesDest: stacker-agent/analysis/trial-data/012922-2cubes-stochastic
   postEventWaitTimerTime: 1000
   timeScale: 100
 --- !u!4 &130105525
@@ -868,8 +869,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4bebc4cda37f46f79838610c55f3ef6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resWidth: 84
-  resHeight: 84
+  resWidth: 640
+  resHeight: 480
 --- !u!4 &256863980
 Transform:
   m_ObjectHideFlags: 0
@@ -1067,6 +1068,7 @@ MonoBehaviour:
   partialSuccessReward: 0
   observationSpaceScale: 0
   forceMultiplier: 0.00025
+  saveImages: 0
   writeOutSamples: 0
   outFileName: 
   scenarioController: {fileID: 130105524}
@@ -1219,6 +1221,7 @@ MonoBehaviour:
   partialSuccessReward: 0
   observationSpaceScale: 0
   forceMultiplier: 0.00025
+  saveImages: 0
   writeOutSamples: 0
   outFileName: 
   scenarioController: {fileID: 130105524}
@@ -3076,15 +3079,15 @@ MonoBehaviour:
   useHeight: 1
   useRelations: 0
   useCenterOfGravity: 1
-  maxEpisodes: 100
+  maxEpisodes: 1000
   episodeCount: 0
   episodeMaxActions: 1
   episodeNumActions: 0
   observationSpaceScale: 1
   forceMultiplier: 0.00025
-  saveImages: 0
+  saveImages: 1
   writeOutSamples: 1
-  outFileName: stacker-agent/analysis/trial-data/012822-cube_sphere-stochastic
+  outFileName: stacker-agent/analysis/trial-data/012922-2cubes-stochastic
   scenarioController: {fileID: 130105524}
 --- !u!1 &1236214448
 GameObject:
@@ -4554,6 +4557,7 @@ MonoBehaviour:
   partialSuccessReward: 0
   observationSpaceScale: 1
   forceMultiplier: 0.00025
+  saveImages: 0
   writeOutSamples: 0
   outFileName: stacker-agent/analysis/trial-data/
   scenarioController: {fileID: 130105524}
@@ -4804,6 +4808,7 @@ MonoBehaviour:
   partialSuccessReward: 0
   observationSpaceScale: 0
   forceMultiplier: 0.00025
+  saveImages: 0
   writeOutSamples: 0
   outFileName: 
   scenarioController: {fileID: 130105524}

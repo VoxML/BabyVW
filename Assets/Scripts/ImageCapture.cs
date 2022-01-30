@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.IO;
 using UnityEngine;
 using UnityEditor;
 
@@ -65,18 +64,34 @@ public class ImageCapture : MonoBehaviour
 
     public void SaveRGB(string filename)
     {
-        RenderTexture rt = new RenderTexture(resWidth, resHeight, 24);
-        Camera.main.targetTexture = rt;
-        Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
-        Camera.main.Render();
-        RenderTexture.active = rt;
-        screenShot.ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
-        Camera.main.targetTexture = null;
-        RenderTexture.active = null;
-        Destroy(rt);
-        byte[] bytes = screenShot.EncodeToPNG();
-        System.IO.File.WriteAllBytes(filename, bytes);
-        Debug.Log(string.Format("Screenshot saved to: {0}", filename));
+        if (filename != string.Empty)
+        {
+            if (!filename.EndsWith(".png"))
+            {
+                filename = string.Format("{0}.png", filename);
+            }
+            string dirPath = Path.GetDirectoryName(filename);
+
+            if (!Directory.Exists(dirPath))
+            {
+                Debug.LogFormat("SaveRGB: creating directory at {0}", dirPath);
+                DirectoryInfo dirInfo = Directory.CreateDirectory(dirPath);
+            }
+
+            RenderTexture rt = new RenderTexture(resWidth, resHeight, 24);
+            Camera.main.targetTexture = rt;
+            Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
+            Camera.main.Render();
+            RenderTexture.active = rt;
+            screenShot.ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
+            screenShot.Apply();
+            Camera.main.targetTexture = null;
+            RenderTexture.active = null;
+            Destroy(rt);
+            byte[] bytes = screenShot.EncodeToPNG();
+            System.IO.File.WriteAllBytes(filename, bytes);
+            Debug.Log(string.Format("Screenshot saved to: {0}", filename));
+        }
     }
 
     public void SaveDepth()
