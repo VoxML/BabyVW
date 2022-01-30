@@ -31,6 +31,7 @@ public class StackingAgent : Agent
 
     public float forceMultiplier;
 
+    public bool saveImages;
     public bool writeOutSamples;
 
     public string outFileName;
