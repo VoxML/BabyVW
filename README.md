@@ -22,6 +22,7 @@ $ conda activate ml-agents
 (ml-agents) $ pip install mlagents_envs
 (ml-agents) $ pip install tensorboard
 (ml-agents) $ pip install notebook
+(ml-agents) $ pip install sklearn
 ```
 
 ## Additional Dependencies (optional)
