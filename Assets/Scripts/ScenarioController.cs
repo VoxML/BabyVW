@@ -191,8 +191,13 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
-    public void SavePostEventImage(string filenamePrefix = "")
+    public void SavePostEventImage(GameObject theme, string filenamePrefix = "")
     {
+        if (!saveImages)
+        {
+            return;
+        }
+
         if (!Directory.Exists(imagesDest))
         {
             Debug.LogFormat("SavePostEventImage: creating directory at {0}", imagesDest);
@@ -209,7 +214,7 @@ public class ScenarioController : MonoBehaviour
         }
         else
         {
-            filename = filenamePrefix;
+            filename = string.Format("{0}",filenamePrefix);
         }
 
         string path = string.Format("{0}/{1}.png",
@@ -224,6 +229,45 @@ public class ScenarioController : MonoBehaviour
 
         // save the "after wait" image
         imageCapture.SaveRGB(path);
+
+        Bounds bounds = GlobalHelper.GetObjectWorldSize(theme);
+        float[] xs = new float[] { Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.min.z)).x,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.max.z)).x,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.min.z)).x,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.max.z)).x,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.min.z)).x,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.max.z)).x,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.min.z)).x,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.max.z)).x };
+        float[] ys = new float[] { Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.min.z)).y,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.max.z)).y,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.min.z)).y,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.max.z)).y,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.min.z)).y,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.max.z)).y,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.min.z)).y,
+                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.max.z)).y };
+
+        float heightScale = Screen.height / (float)imageCapture.resHeight;
+
+        ImageMetadata metadata = new ImageMetadata();
+        metadata.filename = filename;
+        metadata.objName = theme.name;
+        metadata.boundsMinX = (int)((xs.Min() / heightScale) - (((Screen.width / heightScale) - imageCapture.resWidth) / 2.0f));
+        metadata.boundsMinY = (int)(ys.Min() / heightScale);
+        metadata.boundsMaxX = (int)((xs.Max() / heightScale) - (((Screen.width / heightScale) - imageCapture.resWidth) / 2.0f));
+        metadata.boundsMaxY = (int)(ys.Max() / heightScale);
+        metadata.boundsMinX -= 5;
+        metadata.boundsMinY -= 5;
+        metadata.boundsMaxX += 5;
+        metadata.boundsMaxY += 5;
+
+        string json = JsonUtility.ToJson(metadata);
+
+        using (StreamWriter writer = new StreamWriter(string.Format("{0}/{1}.json", imagesDest, dir.Name), true))
+        {
+            writer.WriteLine(json);
+        }
     }
 
     public void PlaceRandomly(GameObject surface)

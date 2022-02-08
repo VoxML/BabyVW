@@ -316,7 +316,7 @@ public class StochasticAgent : MonoBehaviour
                 endEpisode = true;
             }
 
-            scenarioController.SavePostEventImage(string.Format("{0}{1}",episodeCount,episodeNumActions));
+            scenarioController.SavePostEventImage(themeObj,string.Format("{0}{1}{2}",themeObj.name,episodeCount,episodeNumActions));
 
             constructObservation = false;
         }

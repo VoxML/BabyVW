@@ -1,6 +1,18 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
+
+[Serializable]
+public class ImageMetadata
+{
+    public string filename;
+    public string objName;
+    public int boundsMinX;
+    public int boundsMinY;
+    public int boundsMaxX;
+    public int boundsMaxY;
+}
 
 public class ImageCapture : MonoBehaviour
 {

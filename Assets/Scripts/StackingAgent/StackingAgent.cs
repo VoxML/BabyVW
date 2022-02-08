@@ -354,6 +354,8 @@ public class StackingAgent : Agent
                 endEpisode = true;
             }
 
+            scenarioController.SavePostEventImage(themeObj, string.Format("{0}{1}{2}", themeObj.name, episodeCount, episodeNumActions));
+
             constructObservation = false;
         }
 
