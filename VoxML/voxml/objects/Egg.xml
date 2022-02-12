@@ -2,14 +2,14 @@
 <VoxML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Entity Type="Object" />
   <Lex>
-    <Pred>cylinder</Pred>
-    <Type>physobj*artifact</Type>
+    <Pred>egg</Pred>
+    <Type>physobj</Type>
   </Lex>
   <Type>
-    <Head>cylindroid[1]</Head>
+    <Head>ellipsoid[1]</Head>
     <Components />
-    <Concavity>Flat[1]</Concavity>
-    <RotatSym>Y</RotatSym>
+    <Concavity>Convex[1]</Concavity>
+    <RotatSym>X</RotatSym>
     <ReflSym>XY,XZ,YZ</ReflSym>
   </Type>
   <Habitat>

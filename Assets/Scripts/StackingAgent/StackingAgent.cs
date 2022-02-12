@@ -411,7 +411,8 @@ public class StackingAgent : Agent
             { "Sphere", 1 },
             { "Cylinder", 2 },
             { "Capsule", 3 },
-            { "SmallCube", 4 }
+            { "SmallCube", 4 },
+            { "Egg", 5 }
         };
 
         Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,
