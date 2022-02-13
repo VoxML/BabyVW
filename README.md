@@ -90,6 +90,6 @@ Using the same Unity settings as above, run `python ddpg.py -b stacker -l cube_s
 # Fine-tuning a model
 
 Fine tuning uses the same procedure as above, except the command is changed slightly:
-``python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <oldModel> -M <newModel> --vector_obs --train -p COG HGT`
+`python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <oldModel> -M <newModel> --vector_obs --train -p COG HGT`
 
 Instead of initializing weights randomly, this command loads up the weights of `oldModel`, continues training for `t` timesteps, and saves the result at `newModel`.
