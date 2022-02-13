@@ -1,5 +1,7 @@
 # BabyVW
 
+For best results, BabyVW currently uses Unity 2020.2.1.
+
 This repository depends on VoxSim: https://www.github.com/VoxML/VoxSim.  Clone BabyVW, then:
 
 ```
@@ -50,3 +52,37 @@ You can create the entire environment (including optional dependencies) in one c
 * (On M1 Macs) `conda create --name ml-agents --file ml-agents-conda-mac-m1.txt`.
 * (On Intel Macs) `conda create --name ml-agents --file ml-agents-conda-mac-intel.txt`.
 * (On Windows) `conda create --name ml-agents --file ml-agents-conda-win.txt`.
+
+# Testing a model
+
+First, make sure both elements under "Interactable Object Types" are set to "Cube" (as below).
+
+<img width="400" alt="image" src="https://user-images.githubusercontent.com/11696878/153765818-90f8eafe-1574-4a25-86d4-09c3cfdfa63e.png">
+
+To change the object types, drag any of the child objects of `ObjectPrefabs` from the hierarchy onto "Interactable Object Types" to repopulate the fields.
+
+Make sure `VectorDDPGAgent` (under `AgentArchitectures`) is enable and all others are disables (only one agent architecture should be enabled at one time):
+
+<img width="250" alt="image" src="https://user-images.githubusercontent.com/11696878/153765917-95f564dc-9d02-4b79-a751-8e4a21bbd084.png">
+
+Make sure "Continuous Stcking Agent" (component of `VectorDDPGAgent`) is set as below:
+
+<img width="400" alt="image" src="https://user-images.githubusercontent.com/11696878/153765963-74952f90-7d50-4404-b73a-be42bc1634c1.png">
+
+Then, run the following command from within the `ml-agents` Conda environment: `python ddpg.py -b stacker -l cube_stacking_model -t 100 -m 2cubes-20211212-0.0,0.0-1000.0,1000.0-2000-COG.HGT --vector_obs --test -p COG HGT`, and play the Unity scene.  This should connect and test one of the provided pretrained policies for 100 timesteps, print a summary, and generate a reward plot!
+
+(e.g.,)
+```
+===== Summary =====
+Tested for 100 timesteps
+	69 episodes
+	Total reward: 66342.0
+	Max reward achieved: 1000.0
+	Mean reward per episode: 961.4783
+```
+
+<img width="640" alt="image" src="https://user-images.githubusercontent.com/11696878/153766179-5db11c46-7edd-4d5a-a922-751b5ab9797a.png">
+
+# Training a model
+
+Using the same Unity settings as above, run `python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <your model name here> --vector_obs --train -p COG HGT`.  This will train a model using the provided DDPG policy in the `cube_stacking_model` directory for 2000 timesteps (about 30 minutes on a Mac M1).  The saved model will have a lot of automatically-generated suffixes attached, such as `0.0,0.0-1000.0,1000.0`, which encode certain parameters of the action space.
