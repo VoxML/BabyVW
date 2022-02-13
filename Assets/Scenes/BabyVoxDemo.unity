@@ -390,7 +390,7 @@ MonoBehaviour:
   objectTypes: {fileID: 784435535}
   interactableObjectTypes:
   - {fileID: 1242741016}
-  - {fileID: 1960079565}
+  - {fileID: 1242741016}
   numTotalObjs: 2
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
@@ -2004,7 +2004,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &887436146
 Transform:
   m_ObjectHideFlags: 0
@@ -2348,7 +2348,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1213012812
 Transform:
   m_ObjectHideFlags: 0
@@ -2389,8 +2389,8 @@ MonoBehaviour:
   episodeNumActions: 0
   observationSpaceScale: 1
   forceMultiplier: 0.00025
-  saveImages: 1
-  writeOutSamples: 1
+  saveImages: 0
+  writeOutSamples: 0
   outFileName: stacker-agent/analysis/trial-data/020922-cube_egg-stochastic10
   scenarioController: {fileID: 130105524}
 --- !u!1 &1236214448
@@ -3196,7 +3196,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1759529656
 MonoBehaviour:
   m_ObjectHideFlags: 0
