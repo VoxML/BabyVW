@@ -113,8 +113,8 @@ public class ContinuousStackingAgent : StackingAgent
                     constructObservation = true;
                 }
 
-                episodeNumActions += 1;
-                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumActions = {0}", episodeNumActions);
+                episodeNumAttempts += 1;
+                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumAttempts = {0}", episodeNumAttempts);
             }
             else
             {

@@ -30,8 +30,9 @@ public class StochasticAgent : MonoBehaviour
 
     public int maxEpisodes;
     public int episodeCount;
-    public int episodeMaxActions;
-    public int episodeNumActions;
+    public int episodeMaxAttempts;
+    public int episodeNumAttempts;
+    public bool useAllAttempts;
 
     public float observationSpaceScale;
 
@@ -296,27 +297,49 @@ public class StochasticAgent : MonoBehaviour
                 }
             }
 
-            OnDestObjChanged(destObj, newDest);
-            destObj = newDest;
+            if (!useAllAttempts)
+            { 
+                OnDestObjChanged(destObj, newDest);
+                destObj = newDest;
 
-            if (!usedDestObjs.Contains(destObj.transform))
+                if (!usedDestObjs.Contains(destObj.transform))
+                {
+                    usedDestObjs.Add(destObj.transform);
+                    OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
+                }
+
+                if (curNumObjsStacked == interactableObjs.Count)
+                {
+                    Debug.LogFormat("StochasticAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
+
+                    endEpisode = true;
+                }
+                else if (episodeNumAttempts >= episodeMaxAttempts)
+                {
+                    endEpisode = true;
+                }
+            }
+            else
             {
-                usedDestObjs.Add(destObj.transform);
-                OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
+                if (curNumObjsStacked != interactableObjs.Count)
+                {
+                    OnDestObjChanged(destObj, newDest);
+                    destObj = newDest;
+
+                    if (!usedDestObjs.Contains(destObj.transform))
+                    {
+                        usedDestObjs.Add(destObj.transform);
+                        OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
+                    }
+                }
+
+                if (episodeNumAttempts >= episodeMaxAttempts)
+                {
+                    endEpisode = true;
+                }
             }
 
-            if (curNumObjsStacked == interactableObjs.Count)
-            {
-                Debug.LogFormat("StochasticAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
-
-                endEpisode = true;
-            }
-            else if (episodeNumActions >= episodeMaxActions)
-            {
-                endEpisode = true;
-            }
-
-            scenarioController.SavePostEventImage(themeObj,string.Format("{0}{1}{2}",themeObj.name,episodeCount,episodeNumActions));
+            scenarioController.SavePostEventImage(themeObj,string.Format("{0}{1}{2}",themeObj.name,episodeCount,episodeNumAttempts));
 
             constructObservation = false;
         }
@@ -757,7 +780,7 @@ public class StochasticAgent : MonoBehaviour
         }
 
         episodeCount += 1;
-        episodeNumActions = 0;
+        episodeNumAttempts = 0;
 
         Debug.LogFormat("StochasticAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;
@@ -792,6 +815,8 @@ public class StochasticAgent : MonoBehaviour
 
     public void OnActionReceived(object sender, EventArgs e)
     {
+        trialBeginTime = DateTime.Now;
+
         if (waitingForAction && !executingEvent && !resolvePhysics && !constructObservation)
         {
             float[] vectorAction = ((VectorActionEventArgs)e).vectorAction;
@@ -890,8 +915,8 @@ public class StochasticAgent : MonoBehaviour
                     constructObservation = true;
                 }
 
-                episodeNumActions += 1;
-                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumActions = {0}", episodeNumActions);
+                episodeNumAttempts += 1;
+                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumAttempts = {0}", episodeNumAttempts);
             }
             else
             {

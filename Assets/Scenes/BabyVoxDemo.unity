@@ -770,8 +770,8 @@ MonoBehaviour:
   useRelations: 0
   useCenterOfGravity: 0
   episodeCount: 0
-  episodeMaxActions: 0
-  episodeNumActions: 0
+  episodeMaxAttempts: 0
+  episodeNumAttempts: 0
   posRewardMultiplier: 0
   negRewardMultiplier: 0
   partialSuccessReward: 0
@@ -923,8 +923,8 @@ MonoBehaviour:
   useRelations: 0
   useCenterOfGravity: 0
   episodeCount: 0
-  episodeMaxActions: 10
-  episodeNumActions: 0
+  episodeMaxAttempts: 0
+  episodeNumAttempts: 0
   posRewardMultiplier: 0
   negRewardMultiplier: 0
   partialSuccessReward: 0
@@ -2348,7 +2348,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1213012812
 Transform:
   m_ObjectHideFlags: 0
@@ -2385,8 +2385,9 @@ MonoBehaviour:
   useCenterOfGravity: 1
   maxEpisodes: 2000
   episodeCount: 0
-  episodeMaxActions: 10
-  episodeNumActions: 0
+  episodeMaxAttempts: 10
+  episodeNumAttempts: 0
+  useAllAttempts: 1
   observationSpaceScale: 1
   forceMultiplier: 0.00025
   saveImages: 0
@@ -3196,7 +3197,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1759529656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3222,8 +3223,8 @@ MonoBehaviour:
   useRelations: 0
   useCenterOfGravity: 1
   episodeCount: 0
-  episodeMaxActions: 10
-  episodeNumActions: 0
+  episodeMaxAttempts: 10
+  episodeNumAttempts: 0
   posRewardMultiplier: 1000
   negRewardMultiplier: 1
   partialSuccessReward: 0
@@ -3382,8 +3383,8 @@ MonoBehaviour:
   useRelations: 0
   useCenterOfGravity: 0
   episodeCount: 0
-  episodeMaxActions: 0
-  episodeNumActions: 0
+  episodeMaxAttempts: 0
+  episodeNumAttempts: 0
   posRewardMultiplier: 0
   negRewardMultiplier: 0
   partialSuccessReward: 0

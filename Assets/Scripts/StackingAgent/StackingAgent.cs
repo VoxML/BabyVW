@@ -21,8 +21,9 @@ public class StackingAgent : Agent
     public bool useCenterOfGravity;
 
     public int episodeCount;
-    public int episodeMaxActions;
-    public int episodeNumActions;
+    public int episodeMaxAttempts;
+    public int episodeNumAttempts;
+    public bool useAllAttempts;
 
     public float posRewardMultiplier;
     public float negRewardMultiplier;
@@ -266,10 +267,11 @@ public class StackingAgent : Agent
             observation = ConstructObservation().Select(o => (float)o).ToList();
             noisyObservation = observation.Select(o => o + (float)GaussianNoise(0, 0.1f)).ToList();
             float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? 
-                (curNumObjsStacked - lastNumObjsStacked) * (curNumObjsStacked - 1) : 
-                (curNumObjsStacked - lastNumObjsStacked) - 1;
+                (curNumObjsStacked - lastNumObjsStacked) * (curNumObjsStacked - 1) :
+                (curNumObjsStacked == interactableObjs.Count) ?
+                (curNumObjsStacked - 1) * (curNumObjsStacked - 1) : (curNumObjsStacked - lastNumObjsStacked) - 1;
             reward = reward > 0 ? reward * posRewardMultiplier : reward * negRewardMultiplier; // scale up
-            reward = reward > 0 ? (reward / episodeMaxActions) * (episodeMaxActions - episodeNumActions + 1) : reward; // decay positive rewards
+            reward = reward > 0 ? (reward / episodeMaxAttempts) * (episodeMaxAttempts - episodeNumAttempts + 1) : reward; // decay positive rewards
             reward = reward > 0 ? reward : reward + partialSuccessReward; // add reward for partial success, if any
             Debug.LogFormat("StackingAgent.Update: Observation = {0}; Last observation = {1}; Reward = {2}", observation, lastObservation, reward);
             AddReward(reward);
@@ -306,15 +308,6 @@ public class StackingAgent : Agent
                 }
             }
 
-            OnDestObjChanged(destObj, newDest);
-            destObj = newDest;
-
-            if (!usedDestObjs.Contains(destObj.transform))
-            {
-                usedDestObjs.Add(destObj.transform);
-                OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
-            }
-
             //if (curNumObjsStacked - lastNumObjsStacked != 0.0f)
             //{
             //    Debug.LogFormat("StackingAgent.Update: curNumObjsStacked = {0}; lastNumObjsStacked = {1}",
@@ -344,17 +337,49 @@ public class StackingAgent : Agent
             //    }
             //}
 
-            if (curNumObjsStacked == interactableObjs.Count)
+            if (!useAllAttempts)
             {
-                Debug.LogFormat("StackingAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
-                endEpisode = true;
+                OnDestObjChanged(destObj, newDest);
+                destObj = newDest;
+
+                if (!usedDestObjs.Contains(destObj.transform))
+                {
+                    usedDestObjs.Add(destObj.transform);
+                    OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
+                }
+
+                if (curNumObjsStacked == interactableObjs.Count)
+                {
+                    Debug.LogFormat("StochasticAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
+
+                    endEpisode = true;
+                }
+                else if (episodeNumAttempts >= episodeMaxAttempts)
+                {
+                    endEpisode = true;
+                }
             }
-            else if (episodeNumActions >= episodeMaxActions)
+            else
             {
-                endEpisode = true;
+                if (curNumObjsStacked != interactableObjs.Count)
+                {
+                    OnDestObjChanged(destObj, newDest);
+                    destObj = newDest;
+
+                    if (!usedDestObjs.Contains(destObj.transform))
+                    {
+                        usedDestObjs.Add(destObj.transform);
+                        OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
+                    }
+                }
+
+                if (episodeNumAttempts >= episodeMaxAttempts)
+                {
+                    endEpisode = true;
+                }
             }
 
-            scenarioController.SavePostEventImage(themeObj, string.Format("{0}{1}{2}", themeObj.name, episodeCount, episodeNumActions));
+            scenarioController.SavePostEventImage(themeObj, string.Format("{0}{1}{2}", themeObj.name, episodeCount, episodeNumAttempts));
 
             constructObservation = false;
         }
@@ -451,7 +476,7 @@ public class StackingAgent : Agent
         float[] arr7 = new float[] {
             reward,
             episodeTotalReward,
-            episodeTotalReward/episodeNumActions
+            episodeTotalReward/episodeNumAttempts
             };
 
         float[] arr = arr1.Concat(arr2).Concat(arr3).Concat(arr4).
@@ -820,7 +845,7 @@ public class StackingAgent : Agent
         }
 
         episodeCount += 1;
-        episodeNumActions = 0;
+        episodeNumAttempts = 0;
 
         Debug.LogFormat("StackingAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;
