@@ -189,7 +189,7 @@ def main():
         plt.xlabel("Episodes")
         plt.ylabel("Reward")
         plt.legend(loc="upper left")
-        plt.ylim(-100, 1200.0)
+        plt.ylim(-100, max_reward*1.2)
         plt.gca().yaxis.grid()
         plt.show()
 
