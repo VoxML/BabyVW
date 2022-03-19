@@ -13,6 +13,12 @@ using VoxSimPlatform.Vox;
 
 public class StackingAgent : Agent
 {
+    public enum DestinationSelection
+    {
+        Highest,    // select the highest object as the destination object
+        Consistent  // always use the same object as the destination (only use for 2-object tasks)
+    };
+
     public GameObject themeObj, destObj;
     public int observationSize;
     public bool useVectorObservations, noisyVectors;
@@ -24,6 +30,8 @@ public class StackingAgent : Agent
     public int episodeMaxAttempts;
     public int episodeNumAttempts;
     public bool useAllAttempts;
+
+    public DestinationSelection destSelectionMethod;
 
     public float posRewardMultiplier;
     public float negRewardMultiplier;
@@ -302,7 +310,8 @@ public class StackingAgent : Agent
 
             if (newDest != destObj)
             {
-                if (Mathf.Abs(newDest.transform.position.y - destObj.transform.position.y) < Constants.EPSILON)
+                if ((Mathf.Abs(newDest.transform.position.y - destObj.transform.position.y) < Constants.EPSILON) ||
+                        (destSelectionMethod == DestinationSelection.Consistent))
                 {
                     newDest = destObj;
                 }
@@ -437,7 +446,10 @@ public class StackingAgent : Agent
             { "Cylinder", 2 },
             { "Capsule", 3 },
             { "SmallCube", 4 },
-            { "Egg", 5 }
+            { "Egg", 5 },
+            { "RectPrism", 6 },
+            { "Cone", 7 },
+            { "Pyramid", 8 }
         };
 
         Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,

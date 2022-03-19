@@ -76,7 +76,10 @@ public class ScenarioController : MonoBehaviour
         { "Cylinder","cylinder" },
         { "Capsule","capsule" },
         { "SmallCube","block" },
-        { "Egg","egg" }
+        { "Egg","egg" },
+        { "RectPrism","block" },
+        { "Cone","cone" },
+        { "Pyramid","pyramid" }
     };
 
     public event EventHandler ObjectsInited;

@@ -3,7 +3,7 @@
   <Entity Type="Object" />
   <Lex>
     <Pred>self</Pred>
-    <Type>humant</Type>
+    <Type>human</Type>
   </Lex>
   <Type>
     <Head>humanoid[1]</Head>

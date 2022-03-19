@@ -63,7 +63,13 @@ public class ContinuousStackingAgent : StackingAgent
 
                 // if the the object wouldn't touch the destination object at this location, don't even bother simulating it
                 // we know it'll fall
-                Bounds projectedBounds = new Bounds(targetPos, themeBounds.size);
+                Bounds projectedBounds = new Bounds(targetPos, themeBounds.size*(1 + Constants.EPSILON));
+
+                Debug.LogFormat("StackingAgent.OnActionReceived: test targetPos = {0}, " +
+                    "destBounds.center = {1}, projectedBounds.min.y = {2}, destBounds.max.y = {3}",
+                    GlobalHelper.VectorToParsable(targetPos),
+                    GlobalHelper.VectorToParsable(destBounds.center),
+                    projectedBounds.min.y, destBounds.max.y);
 
                 if (projectedBounds.Intersects(destBounds))
                 { 
