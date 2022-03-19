@@ -83,6 +83,11 @@ Tested for 100 timesteps
 
 <img width="640" alt="image" src="https://user-images.githubusercontent.com/11696878/153766179-5db11c46-7edd-4d5a-a922-751b5ab9797a.png">
 
+**Explanation of settable component parameters**
+* Episode Max Attempts: Maximum number of time to attempt stacking before giving up.
+* Use All Attempts: If unchecked, the episode will terminate once the theme object is stacked successfully; otherwise, the agent will make as many attempts as set in `Episode Max Attempts` and not terminate the episode even when successful (the episode only terminates when the max number of attempts is reached, regardless of the result of any individual attempt).
+* Dest Selection Method: `Highest` if the highest object in the scene should be used as the destination object for the next action, `Consistent` if the destination object should be kept constant across all actions (not suitable for more that 2-object scenarios).
+
 # Training a model
 
 Using the same Unity settings as above, run `python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <your model name here> --vector_obs --train -p COG HGT`.  This will train a model using the provided DDPG policy in the `cube_stacking_model` directory for 2000 timesteps (about 30 minutes on a Mac M1).  The saved model will have a lot of automatically-generated suffixes attached, such as `0.0,0.0-1000.0,1000.0`, which encode certain parameters of the action space, observation space, and training regime, to help identify the properties of each saved model after the fact.
@@ -93,3 +98,13 @@ Fine tuning uses the same procedure as above, except the command is changed slig
 `python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <oldModel> -M <newModel> --vector_obs --train -p COG HGT`
 
 Instead of initializing weights randomly, this command loads up the weights of `oldModel`, continues training for `t` timesteps, and saves the result at `newModel`.
+
+# Stochastic baseline
+
+The `StochasticAgent` (under `AgentArchitectures`) shares the same flow of control as the other agents, but has no reinforcement learning client attached.  You can use this to place objects randomly on top of the destination object.  As usual, if you use this "agent" all other agents need to be disabled.  Simply set your parameters (e.g., below) and play the scene.
+
+<img width="400" alt="image" src="https://user-images.githubusercontent.com/11696878/159133678-8baa0fff-b34f-4a51-a28b-34b15996637d.png">
+
+**Explanation of settable component parameters**
+* (See explanation above)
+* Max Epsiodes: Maximum number of episodes to execute.
