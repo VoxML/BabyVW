@@ -180,7 +180,7 @@ def main():
         plt.xlabel("Timesteps")
         plt.ylabel("Reward")
         plt.legend(loc="upper left")
-        plt.ylim(-100, 1200.0)
+        plt.ylim(-100, np.max(np.array(reward_per_timestep))*1.2)
         plt.gca().yaxis.grid()
         
         plt.subplot(1, 2, 2)
@@ -189,7 +189,7 @@ def main():
         plt.xlabel("Episodes")
         plt.ylabel("Reward")
         plt.legend(loc="upper left")
-        plt.ylim(-100, max_reward*1.2)
+        plt.ylim(-100, np.max(np.array(reward_per_episode))*1.2)
         plt.gca().yaxis.grid()
         plt.show()
 
