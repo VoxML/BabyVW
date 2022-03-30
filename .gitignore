@@ -171,9 +171,6 @@ local_config
 # __pycache__
 *__pycache__*
 
-# ignore virtual environment
-ml-agents*
-
 # ignore Tensorboard log directories
 stacker-agent/stacker
 
