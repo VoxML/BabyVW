@@ -79,7 +79,8 @@ public class ScenarioController : MonoBehaviour
         { "Egg","egg" },
         { "RectPrism","block" },
         { "Cone","cone" },
-        { "Pyramid","pyramid" }
+        { "Pyramid","pyramid" },
+        { "Banana","banana" }
     };
 
     public event EventHandler ObjectsInited;
@@ -334,41 +335,44 @@ public class ScenarioController : MonoBehaviour
                 int materialIndex = 0;
                 MaterialOptions materials = newObj.GetComponent<MaterialOptions>();
 
-                if (attemptUniqueAttributes)
+                if (materials != null)
                 {
-                    for (int m = 0; m < materials.materialOptions.Count; m++)
+                    if (attemptUniqueAttributes)
                     {
-                        if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[m].name.ToLower())) 
+                        for (int m = 0; m < materials.materialOptions.Count; m++)
                         {
-                            materialIndex = m;
-                            break;
+                            if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[m].name.ToLower()))
+                            {
+                                materialIndex = m;
+                                break;
+                            }
                         }
-                    }
 
-                    if (materialIndex == materials.materialOptions.Count)
+                        if (materialIndex == materials.materialOptions.Count)
+                        {
+                            materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
+                                (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                        }
+
+                        newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
+                    }
+                    else
                     {
                         materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
-                            (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                                (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
+                        newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
                     }
 
-                    newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
-                }
-                else
-                {
-                    materialIndex = RandomHelper.RandomInt(0, materials.materialOptions.Count - 1,
-                            (int)(RandomHelper.RangeFlags.MinInclusive | RandomHelper.RangeFlags.MaxInclusive));
-                    newObj.GetComponent<Renderer>().material = materials.materialOptions[materialIndex];
-                }
+                    // add material name to instantiated attributes
+                    if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[materialIndex].name.ToLower()))
+                    {
+                        instantiatedAttributes[t.name].Add(materials.materialOptions[materialIndex].name.ToLower());
+                    }
 
-                // add material name to instantiated attributes
-                if (!instantiatedAttributes[t.name].Contains(materials.materialOptions[materialIndex].name.ToLower()))
-                {
-                    instantiatedAttributes[t.name].Add(materials.materialOptions[materialIndex].name.ToLower());
+                    // add material name as attribute
+                    newObj.AddComponent<AttributeSet>();
+                    newObj.GetComponent<AttributeSet>().attributes.Add(materials.materialOptions[materialIndex].name.ToLower());
                 }
-
-                // add material name as attribute
-                newObj.AddComponent<AttributeSet>();
-                newObj.GetComponent<AttributeSet>().attributes.Add(materials.materialOptions[materialIndex].name.ToLower());
 
                 // tag
                 newObj.tag = "Perceptible";

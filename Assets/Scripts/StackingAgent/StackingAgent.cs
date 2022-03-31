@@ -225,6 +225,8 @@ public class StackingAgent : Agent
         {
             scenarioController.usingRLClient = true;
             scenarioController.squareFOV = GetComponent<CameraSensorComponent>() != null;
+            scenarioController.imagesDest = outFileName.Replace(".csv","");
+            scenarioController.saveImages = saveImages;
             scenarioController.ObjectsInited += ObjectsPlaced;
             scenarioController.EventExecuting += ExecutingEvent;
             scenarioController.EventCompleted += CalcCenterOfGravity;
@@ -449,7 +451,8 @@ public class StackingAgent : Agent
             { "Egg", 5 },
             { "RectPrism", 6 },
             { "Cone", 7 },
-            { "Pyramid", 8 }
+            { "Pyramid", 8 },
+            { "Banana", 9 }
         };
 
         Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,

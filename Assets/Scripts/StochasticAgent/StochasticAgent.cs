@@ -217,6 +217,7 @@ public class StochasticAgent : MonoBehaviour
         if (scenarioController != null)
         {
             scenarioController.squareFOV = saveImages;
+            scenarioController.imagesDest = outFileName.Replace(".csv", "");
             scenarioController.saveImages = saveImages;
             scenarioController.ObjectsInited += ObjectsPlaced;
             scenarioController.EventExecuting += ExecutingEvent;
@@ -397,7 +398,8 @@ public class StochasticAgent : MonoBehaviour
             { "Egg", 5 },
             { "RectPrism", 6 },
             { "Cone", 7 },
-            { "Pyramid", 8 }
+            { "Pyramid", 8 },
+            { "Banana", 9 }
         };
 
         Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,
@@ -851,7 +853,7 @@ public class StochasticAgent : MonoBehaviour
 
                 vectorAction.CopyTo(lastAction, 0);
 
-                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}, themeObs = {1}, destObj = {2}",
+                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}, themeObj = {1}, destObj = {2}",
                     string.Format("[{0}]", string.Join(",", vectorAction)), themeObj.name, destObj.name);
 
                 Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
