@@ -28,6 +28,7 @@ public class ScenarioController : MonoBehaviour
     public int numInteractableObjs;
     public bool instantiateObjectTypesInOrder;
     public bool attemptUniqueAttributes;
+    public bool randomizeStartRotation;
     public bool circumventEventManager;
     public bool saveImages;
 
@@ -338,7 +339,12 @@ public class ScenarioController : MonoBehaviour
                 newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}",i));
                 newObj.transform.position = new Vector3(coord.x,
                     coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
-                newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
+
+                if (randomizeStartRotation)
+                {
+                    newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
+                }
+
                 newObj.AddComponent<Voxeme>();
                 newObj.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
                 //newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
@@ -416,7 +422,12 @@ public class ScenarioController : MonoBehaviour
             newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}", i+numInteractableObjs));
             newObj.transform.position = new Vector3(coord.x,
                 coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
-            newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
+
+            if (randomizeStartRotation)
+            {
+                newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
+            }
+
             newObj.AddComponent<Voxeme>();
             newObj.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
             newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
