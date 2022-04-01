@@ -80,7 +80,11 @@ public class StochasticAgent : MonoBehaviour
 
     protected float[] lastAction;
 
+    Vector3 themeStartLocation;
     Vector3 themeStartRotation;
+
+    Vector3 themeMidLocation;
+    Vector3 themeMidRotation;
 
     Vector3 lastForceApplied;
 
@@ -402,17 +406,21 @@ public class StochasticAgent : MonoBehaviour
             { "Banana", 9 }
         };
 
+        float angleOffsetStart = Vector3.Angle(Vector3.up, Quaternion.Euler(themeStartRotation) * Vector3.up);
+        float angleOffsetMid = Vector3.Angle(Vector3.up, Quaternion.Euler(themeMidRotation) * Vector3.up);
+        Vector3 themeEndLocation = new Vector3(themeTransform.position.x, themeTransform.position.y, themeTransform.position.z);
         Vector3 themeEndRotation = new Vector3(themeTransform.eulerAngles.x > 180.0f ? themeTransform.eulerAngles.x - 360.0f : themeTransform.eulerAngles.x,
             themeTransform.eulerAngles.y > 180.0f ? themeTransform.eulerAngles.y - 360.0f : themeTransform.eulerAngles.y,
             themeTransform.eulerAngles.z > 180.0f ? themeTransform.eulerAngles.z - 360.0f : themeTransform.eulerAngles.z);
-        float angleOffsetStart = Vector3.Angle(Vector3.up, Quaternion.Euler(themeStartRotation) * Vector3.up);
         float angleOffsetEnd = Vector3.Angle(Vector3.up, themeTransform.up);
+
         Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
 
         float[] arr1 = new float[] {
             episodeCount,
             objNameToIntDict[themeTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
             objNameToIntDict[destTransform.name.Split(new char[]{ '0','1','2','3','4','5','6','7','8','9' })[0]],
+            themeStartLocation.x * Mathf.Deg2Rad, themeStartLocation.y * Mathf.Deg2Rad, themeStartLocation.z * Mathf.Deg2Rad,
             themeStartRotation.x * Mathf.Deg2Rad, themeStartRotation.y * Mathf.Deg2Rad, themeStartRotation.z * Mathf.Deg2Rad,
             angleOffsetStart * Mathf.Deg2Rad
             };
@@ -420,6 +428,10 @@ public class StochasticAgent : MonoBehaviour
         float[] arr2 = action;
 
         float[] arr3 = new float[] {
+            themeMidLocation.x * Mathf.Deg2Rad, themeMidLocation.y * Mathf.Deg2Rad, themeMidLocation.z * Mathf.Deg2Rad,
+            themeMidRotation.x * Mathf.Deg2Rad, themeMidRotation.y * Mathf.Deg2Rad, themeMidRotation.z * Mathf.Deg2Rad,
+            angleOffsetMid * Mathf.Deg2Rad,
+            themeEndLocation.x * Mathf.Deg2Rad, themeEndLocation.y * Mathf.Deg2Rad, themeEndLocation.z * Mathf.Deg2Rad,
             themeEndRotation.x * Mathf.Deg2Rad, themeEndRotation.y * Mathf.Deg2Rad, themeEndRotation.z * Mathf.Deg2Rad,
             angleOffsetEnd * Mathf.Deg2Rad
             };
@@ -452,6 +464,61 @@ public class StochasticAgent : MonoBehaviour
             {
                 Debug.LogFormat("WriteOutSample: creating directory at {0}", dirPath);
                 DirectoryInfo dirInfo = Directory.CreateDirectory(dirPath);
+            }
+
+            if (!File.Exists(outFileName))
+            {
+                using (StreamWriter writer = new StreamWriter(outFileName))
+                {
+                    string[] header1 = new string[] {
+                        "Episode #",            // 0
+                        "Theme",                // 1
+                        "Dest",                 // 2
+                        "Theme Start Loc X",    // 3
+                        "Theme Start Loc Y",    // 4
+                        "Theme Start Loc Z",    // 5
+                        "Theme Start Rot X",    // 6
+                        "Theme Start Rot Y",    // 7
+                        "Theme Start Rot Z",    // 8
+                        "Theme Start Theta",    // 9
+                        "Action[0]",            // 10
+                        "Action[1]",            // 11
+                        "Theme Mid Loc X",      // 12
+                        "Theme Mid Loc Y",      // 13
+                        "Theme Mid Loc Z",      // 14
+                        "Theme Mid Rot X",      // 15
+                        "Theme Mid Rot Y",      // 16
+                        "Theme Mid Rot Z",      // 17
+                        "Theme Mid Theta",      // 18
+                        "Theme End Loc X",      // 19
+                        "Theme End Loc Y",      // 20
+                        "Theme End Loc Z",      // 21
+                        "Theme End Rot X",      // 22
+                        "Theme End Rot Y",      // 23
+                        "Theme End Rot Z",      // 24
+                        "Theme End Theta",      // 25
+                        "Jitter X",             // 26
+                        "Jitter Y",             // 27
+                        "Jitter Z",             // 28
+                        "Theme Center X",       // 29
+                        "Theme Center Loc Y",   // 30
+                        "Theme Center Loc Z",   // 31
+                        "Theme Size X",         // 32
+                        "Theme Size Y",         // 33
+                        "Theme Size Z"          // 34
+                    };
+
+                    string[] header2 = new string[] { };
+                    for (int i = 0; i < observation.Count; i++)
+                    {
+                        header2 = header2.Concat(new string[] { string.Format("Observation[{0}]", i) }).ToArray();
+                    }
+
+                    string[] header = header1.Concat(header2).ToArray();
+                    string csvHeader = string.Join(",", header);
+
+                    writer.WriteLine(csvHeader);
+                }
             }
 
             using (StreamWriter writer = new StreamWriter(outFileName, true))
@@ -511,6 +578,11 @@ public class StochasticAgent : MonoBehaviour
 
     public void CalcCenterOfGravity(object sender, EventArgs e)
     {
+        themeMidLocation = new Vector3(themeObj.transform.position.x, themeObj.transform.position.y, themeObj.transform.position.z);
+        themeMidRotation = new Vector3(themeObj.transform.eulerAngles.x > 180.0f ? themeObj.transform.eulerAngles.x - 360.0f : themeObj.transform.eulerAngles.x,
+            themeObj.transform.eulerAngles.y > 180.0f ? themeObj.transform.eulerAngles.y - 360.0f : themeObj.transform.eulerAngles.y,
+            themeObj.transform.eulerAngles.z > 180.0f ? themeObj.transform.eulerAngles.z - 360.0f : themeObj.transform.eulerAngles.z);
+
         // calc center of stack bounds
         // calc center of theme object bounds
         // CoG = center of theme bounds - center of stack bounds
@@ -664,6 +736,7 @@ public class StochasticAgent : MonoBehaviour
         { 
             theme = sortedByHeight.First().gameObject;
 
+            themeStartLocation = new Vector3(theme.transform.position.x,theme.transform.position.y, theme.transform.position.z);
             themeStartRotation = new Vector3(theme.transform.eulerAngles.x > 180.0f ? theme.transform.eulerAngles.x - 360.0f : theme.transform.eulerAngles.x,
                 theme.transform.eulerAngles.y > 180.0f ? theme.transform.eulerAngles.y - 360.0f : theme.transform.eulerAngles.y,
                 theme.transform.eulerAngles.z > 180.0f ? theme.transform.eulerAngles.z - 360.0f : theme.transform.eulerAngles.z);
