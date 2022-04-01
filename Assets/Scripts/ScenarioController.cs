@@ -277,6 +277,17 @@ public class ScenarioController : MonoBehaviour
 
     public void PlaceRandomly(GameObject surface)
     {
+        Vector3[] validStartRotations = new Vector3[]
+        {
+            Vector3.zero,
+            new Vector3(90,0,0),
+            new Vector3(0,90,0),
+            new Vector3(0,0,90),
+            new Vector3(-90,0,0),
+            new Vector3(0,-90,0),
+            new Vector3(0,0,-90)
+        };
+
         List<GameObject> instantiatedVoxemeObjs = interactableObjects.GetComponentsInChildren<Voxeme>().Select(v => v.gameObject).ToList();
         for (int i = 0; i < instantiatedVoxemeObjs.Count; i++)
         {
@@ -327,6 +338,7 @@ public class ScenarioController : MonoBehaviour
                 newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}",i));
                 newObj.transform.position = new Vector3(coord.x,
                     coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
+                newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
                 newObj.AddComponent<Voxeme>();
                 newObj.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
                 //newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
@@ -404,6 +416,7 @@ public class ScenarioController : MonoBehaviour
             newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}", i+numInteractableObjs));
             newObj.transform.position = new Vector3(coord.x,
                 coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
+            newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
             newObj.AddComponent<Voxeme>();
             newObj.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
             newObj.GetComponent<Voxeme>().targetPosition = newObj.transform.position;
