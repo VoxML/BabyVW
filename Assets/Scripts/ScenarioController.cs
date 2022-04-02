@@ -19,6 +19,7 @@ public class ScenarioController : MonoBehaviour
     public float xMax;
     public float nearClipRadius;
     public float interactableRadius;
+    public bool centerDestObj;
     public GameObject interactableObjects;
     public GameObject backgroundObjects;
     public GameObject surface;
@@ -237,22 +238,22 @@ public class ScenarioController : MonoBehaviour
         imageCapture.SaveRGB(path);
 
         Bounds bounds = GlobalHelper.GetObjectWorldSize(theme);
-        float[] xs = new float[] { Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.min.z)).x,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.max.z)).x,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.min.z)).x,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.max.z)).x,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.min.z)).x,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.max.z)).x,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.min.z)).x,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.max.z)).x };
-        float[] ys = new float[] { Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.min.z)).y,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.max.z)).y,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.min.z)).y,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.max.z)).y,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.min.z)).y,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.max.z)).y,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.min.z)).y,
-                                    Camera.main.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.max.z)).y };
+        float[] xs = new float[] { mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.min.z)).x,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.max.z)).x,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.min.z)).x,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.max.z)).x,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.min.z)).x,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.max.z)).x,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.min.z)).x,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.max.z)).x };
+        float[] ys = new float[] { mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.min.z)).y,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.min.y,bounds.max.z)).y,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.min.z)).y,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.min.x,bounds.max.y,bounds.max.z)).y,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.min.z)).y,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.min.y,bounds.max.z)).y,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.min.z)).y,
+                                    mainCamera.WorldToScreenPoint(new Vector3(bounds.max.x,bounds.max.y,bounds.max.z)).y };
 
         float heightScale = Screen.height / (float)imageCapture.resHeight;
 
@@ -336,6 +337,7 @@ public class ScenarioController : MonoBehaviour
                 //coord = new Vector3(i / 2f, 0, 0);
 
                 GameObject newObj = Instantiate(t.gameObject);
+                Debug.Log(string.Format("ScenarioController.PlaceRandomly: {0}, parent = {1}", newObj.name, newObj.transform.parent));
                 newObj.name = newObj.name.Replace("(Clone)", string.Format("{0}",i));
                 newObj.transform.position = new Vector3(coord.x,
                     coord.y + GlobalHelper.GetObjectWorldSize(newObj.gameObject).extents.y, coord.z);
@@ -396,6 +398,7 @@ public class ScenarioController : MonoBehaviour
                 newObj.tag = "Perceptible";
 
                 newObj.transform.parent = interactableObjects.transform;
+                Debug.Log(string.Format("ScenarioController.PlaceRandomly: {0}, parent = {1}", newObj.name, newObj.transform.parent));
                 voxemeInit.InitializeVoxemes();
             }
 
@@ -478,6 +481,13 @@ public class ScenarioController : MonoBehaviour
             newObj.transform.parent = backgroundObjects.transform;
             voxemeInit.InitializeVoxemes();
         }
+    }
+
+    public void CenterObjectInView(GameObject obj)
+    {
+        mainCamera.transform.LookAt(new Vector3(obj.transform.position.x,
+            GlobalHelper.GetObjectWorldSize(obj).max.y,
+            obj.transform.position.z));
     }
 
     public void ClearEventManager()

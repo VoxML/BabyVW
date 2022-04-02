@@ -238,14 +238,23 @@ public class StackingAgent : Agent
             scenarioController.PostEventWaitCompleted += MakeDecisionRequest;
             scenarioController.PostEventWaitCompleted += ResultObserved;
             scenarioController.ForceEndEpisode += ForceEndEpisode;
+
+            Time.timeScale = scenarioController.timeScale;
         }
         else
         {
             Debug.LogWarning("StackingAgent.Start: scenarioController is null!");
         }
 
-        Time.timeScale = scenarioController.timeScale;
         defaultMaxStep = MaxStep;
+
+        if (useRelations)
+        {
+            if (scenarioController.circumventEventManager)
+            {
+                Debug.LogWarning("StochasticAgent.Start: using relation requires use of the event manager! Make sure event manager is not being circumvented.");
+            }
+        }
     }
 
     void Update()
@@ -844,22 +853,24 @@ public class StackingAgent : Agent
         if (useRelations)
         {
             List<string> rels = scenarioController.GetRelations(destObj, themeObj);
+            float[] relObs = new float[] { 0, 0, 0, 0, 0 };
             if (rels.Count == 0)
             {
-                obs.AddRange(new float[] { 0, 0, 0, 0, 0 });
+                obs.AddRange(relObs);
             }
             else
-            { 
+            {
                 foreach (string r in rels)
                 {
                     if (relDict.Keys.Contains(r))
                     {
-                        foreach (int i in relDict[r])
+                        for (int i = 0; i < relObs.Length; i++)
                         {
-                            obs.Add(i * observationSpaceScale);
+                            relObs[i] += relDict[r][i];
                         }
                     }
                 }
+                obs.AddRange(relObs);
             }
         }
 
@@ -1104,6 +1115,14 @@ public class StackingAgent : Agent
     {
         Debug.Log(string.Format("==================== destObj changed ==================== {0}->{1}",
             oldVal == null ? "NULL" : oldVal.name, newVal == null ? "NULL" : newVal.name));
+
+        if (scenarioController.centerDestObj)
+        {
+            if (newVal != null)
+            {
+                scenarioController.CenterObjectInView(newVal);
+            }
+        }
     }
 
     /// <summary>
