@@ -384,6 +384,7 @@ MonoBehaviour:
   xMax: 0
   nearClipRadius: 0.3
   interactableRadius: 0.5
+  centerDestObj: 1
   interactableObjects: {fileID: 1804393135}
   backgroundObjects: {fileID: 699601237}
   surface: {fileID: 681278271}
@@ -396,7 +397,7 @@ MonoBehaviour:
   instantiateObjectTypesInOrder: 1
   attemptUniqueAttributes: 1
   randomizeStartRotation: 1
-  circumventEventManager: 1
+  circumventEventManager: 0
   saveImages: 0
   imagesDest: 
   postEventWaitTimerTime: 1000
@@ -2510,7 +2511,7 @@ MonoBehaviour:
   useVectorObservations: 1
   noisyVectors: 0
   useHeight: 1
-  useRelations: 0
+  useRelations: 1
   useCenterOfGravity: 1
   maxEpisodes: 10
   episodeCount: 0
@@ -3351,8 +3352,8 @@ Transform:
   m_Father: {fileID: 784435535}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &1612746826
-SphereCollider:
+--- !u!64 &1612746826
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -3361,9 +3362,10 @@ SphereCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  serializedVersion: 4
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1612746827
 MeshRenderer:
   m_ObjectHideFlags: 0
