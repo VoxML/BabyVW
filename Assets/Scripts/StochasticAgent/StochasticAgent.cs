@@ -1083,7 +1083,7 @@ public class StochasticAgent : MonoBehaviour
         if (episodeCount >= maxEpisodes)
         {
             DataGatherer dataGatherer = GetComponent<DataGatherer>();
-            if (dataGatherer != null)
+            if ((dataGatherer != null) && (dataGatherer.isActiveAndEnabled))
             {
                 dataGatherer.OnIterationFinished(this, null);
                 OnEpisodeBegin(this, null);
