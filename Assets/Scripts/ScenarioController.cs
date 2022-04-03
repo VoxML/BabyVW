@@ -85,6 +85,20 @@ public class ScenarioController : MonoBehaviour
         { "Banana","banana" }
     };
 
+    Vector3[] validPlacementRotations = new Vector3[]
+{
+            Vector3.zero,
+            new Vector3(90,0,0),
+            new Vector3(0,90,0),
+            new Vector3(0,0,90),
+            new Vector3(-90,0,0),
+            new Vector3(0,-90,0),
+            new Vector3(0,0,-90),
+            new Vector3(180,0,0),
+            new Vector3(0,180,0),
+            new Vector3(0,0,180)
+};
+
     public event EventHandler ObjectsInited;
 
     public void OnObjectsInited(object sender, EventArgs e)
@@ -279,17 +293,6 @@ public class ScenarioController : MonoBehaviour
 
     public void PlaceRandomly(GameObject surface)
     {
-        Vector3[] validStartRotations = new Vector3[]
-        {
-            Vector3.zero,
-            new Vector3(90,0,0),
-            new Vector3(0,90,0),
-            new Vector3(0,0,90),
-            new Vector3(-90,0,0),
-            new Vector3(0,-90,0),
-            new Vector3(0,0,-90)
-        };
-
         List<GameObject> instantiatedVoxemeObjs = interactableObjects.GetComponentsInChildren<Voxeme>().Select(v => v.gameObject).ToList();
         for (int i = 0; i < instantiatedVoxemeObjs.Count; i++)
         {
@@ -344,7 +347,7 @@ public class ScenarioController : MonoBehaviour
 
                 if (randomizeStartRotation)
                 {
-                    newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
+                    newObj.transform.eulerAngles = validPlacementRotations[RandomHelper.RandomInt(0, validPlacementRotations.Length)];
                 }
 
                 newObj.AddComponent<Voxeme>();
@@ -428,7 +431,7 @@ public class ScenarioController : MonoBehaviour
 
             if (randomizeStartRotation)
             {
-                newObj.transform.eulerAngles = validStartRotations[RandomHelper.RandomInt(0, validStartRotations.Length)];
+                newObj.transform.eulerAngles = validPlacementRotations[RandomHelper.RandomInt(0, validPlacementRotations.Length)];
             }
 
             newObj.AddComponent<Voxeme>();
