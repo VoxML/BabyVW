@@ -526,16 +526,6 @@ public class ScenarioController : MonoBehaviour
     {
         Debug.LogFormat("ScenarioController.ExecutingEvent: {0}", ((EventManagerArgs)e).EventString);
 
-        if (saveImages)
-        {
-            if (GlobalHelper.GetTopPredicate(((EventManagerArgs)e).EventString) == "put")
-            {
-                // save the "before event" image
-                imageCapture.SaveRGB(string.Format("{0}/{1}.png",
-                    imagesDest, DateTime.Now.ToString("yyyyMMddHHmmss")));
-            }
-        }
-
         OnEventExecuting(this, null);
     }
 
@@ -547,13 +537,6 @@ public class ScenarioController : MonoBehaviour
 
         // start the wait timer
         postEventWaitTimer.Enabled = true;
-
-        if (saveImages)
-        {
-            //save the "after event" image
-            imageCapture.SaveRGB(string.Format("{0}/{1}.png",
-                imagesDest, DateTime.Now.ToString("yyyyMMddHHmmss")));
-        }
     }
 
     void PostEventWaitComplete(object sender, ElapsedEventArgs e)
