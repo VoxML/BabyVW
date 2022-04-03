@@ -13,7 +13,7 @@ public class DiscreteStackingAgent : StackingAgent
         {
             Vector2 targetOnSurface = new Vector2(vectorAction[0], vectorAction[1]);
 
-            if (scenarioController.IsValidAction(targetOnSurface))
+            if (ScenarioController.IsValidAction(targetOnSurface))
             {
                 if (!vectorAction.SequenceEqual(lastAction))
                 {
@@ -47,7 +47,7 @@ public class DiscreteStackingAgent : StackingAgent
 
                     string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
                     Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
-                    scenarioController.SendToEventManager(eventStr);
+                    ScenarioController.SendToEventManager(eventStr);
 
                     waitingForAction = false;
                 }

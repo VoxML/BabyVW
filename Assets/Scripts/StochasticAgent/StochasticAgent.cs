@@ -34,9 +34,30 @@ public class StochasticAgent : MonoBehaviour
     public bool useRelations;
     public bool useCenterOfGravity;
 
-    public int maxEpisodes;
-    public int episodeCount;
-    public int episodeMaxAttempts;
+    [SerializeField]
+    int maxEpisodes;
+    public int MaxEpisodes
+    {
+        get { return maxEpisodes; }
+        set { maxEpisodes = value; }
+    }
+
+    [SerializeField]
+    int episodeCount;
+    public int EpisodeCount
+    {
+        get { return episodeCount; }
+        set { episodeCount = value; }
+    }
+
+    [SerializeField]
+    int episodeMaxAttempts;
+    public int EpisodeMaxAttempts
+    {
+        get { return episodeMaxAttempts; }
+        set { episodeMaxAttempts = value; }
+    }
+
     public int episodeNumAttempts;
     public bool useAllAttempts;
 
@@ -44,14 +65,32 @@ public class StochasticAgent : MonoBehaviour
 
     public float observationSpaceScale;
 
-    public float forceMultiplier;
+    [SerializeField]
+    float forceMultiplier;
+    public float ForceMultiplier
+    {
+        get { return forceMultiplier; }
+        set { forceMultiplier = value; }
+    }
 
     public bool saveImages;
     public bool writeOutSamples;
 
-    public string outFileName;
+    [SerializeField]
+    string outFileName;
+    public string OutFileName
+    {
+        get { return outFileName; }
+        set { outFileName = value; }
+    }
 
-    public ScenarioController scenarioController;
+    [SerializeField]
+    ScenarioController scenarioController;
+    public ScenarioController ScenarioController
+    {
+        get { return scenarioController; }
+        set { scenarioController = value; }
+    }
 
     Dictionary<string, int[]> relDict = new Dictionary<string, int[]>()
     {
@@ -242,7 +281,7 @@ public class StochasticAgent : MonoBehaviour
         {
             if (scenarioController.circumventEventManager)
             {
-                Debug.LogWarning("StochasticAgent.Start: using relation requires use of the event manager! Make sure event manager is not being circumvented.");
+                Debug.LogWarning("StochasticAgent.Start: using relations requires use of the event manager! Make sure event manager is not being circumvented.");
             }
         }
     }
@@ -936,12 +975,12 @@ public class StochasticAgent : MonoBehaviour
 
                 vectorAction.CopyTo(lastAction, 0);
 
-                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: {0}, themeObj = {1}, destObj = {2}",
+                Debug.LogFormat("StochasterAgent.OnActionReceived: Action received: {0}, themeObj = {1}, destObj = {2}",
                     string.Format("[{0}]", string.Join(",", vectorAction)), themeObj.name, destObj.name);
 
                 Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
                 Bounds destBounds = GlobalHelper.GetObjectWorldSize(destObj);
-                Debug.LogFormat("StackingAgent.OnActionReceived: Action received: " +
+                Debug.LogFormat("StochasterAgent.OnActionReceived: Action received: " +
                     "[{0}] themeBounds.center = {1}; themeBounds.size = {2}; " +
                     "[{3}] destBounds.center = {4}; destBounds.size = {5}",
                     themeObj.name,
@@ -984,7 +1023,7 @@ public class StochasticAgent : MonoBehaviour
                         PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
 
                         string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
-                        Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
+                        Debug.LogFormat("StochasterAgent.OnActionReceived: executing event: {0}", eventStr);
                         scenarioController.SendToEventManager(eventStr);
                     }
                     else
@@ -1014,11 +1053,11 @@ public class StochasticAgent : MonoBehaviour
                 }
 
                 episodeNumAttempts += 1;
-                Debug.LogFormat("StackingAgent.OnActionReceived: episodeNumAttempts = {0}", episodeNumAttempts);
+                Debug.LogFormat("StochasterAgent.OnActionReceived: episodeNumAttempts = {0}", episodeNumAttempts);
             }
             else
             {
-                Debug.LogFormat("StackingAgent.OnActionReceived: Invalid action {0} - equal to {1}",
+                Debug.LogFormat("StochasterAgent.OnActionReceived: Invalid action {0} - equal to {1}",
                     string.Format("[{0}]", string.Join(",", vectorAction)),
                     string.Format("[{0}]", string.Join(",", lastAction)));
             }
@@ -1027,12 +1066,12 @@ public class StochasticAgent : MonoBehaviour
         {
             if (!waitingForAction)
             {
-                Debug.LogFormat("StackingAgent.OnActionReceived: Not waiting for action");
+                Debug.LogFormat("StochasterAgent.OnActionReceived: Not waiting for action");
             }
 
             if (executingEvent)
             {
-                Debug.LogFormat("StackingAgent.OnActionReceived: Currently executing event");
+                Debug.LogFormat("StochasterAgent.OnActionReceived: Currently executing event");
             }
         }
     }
@@ -1043,11 +1082,20 @@ public class StochasticAgent : MonoBehaviour
 
         if (episodeCount >= maxEpisodes)
         {
+            DataGatherer dataGatherer = GetComponent<DataGatherer>();
+            if (dataGatherer != null)
+            {
+                dataGatherer.OnIterationFinished(this, null);
+                OnEpisodeBegin(this, null);
+            }
+            else
+            { 
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-         Application.Quit();
+            Application.Quit();
 #endif
+            }
         }
         else
         {

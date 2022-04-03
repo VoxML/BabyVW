@@ -26,8 +26,22 @@ public class StackingAgent : Agent
     public bool useRelations;
     public bool useCenterOfGravity;
 
-    public int episodeCount;
-    public int episodeMaxAttempts;
+    [SerializeField]
+    int episodeCount;
+    public int EpisodeCount
+    {
+        get { return episodeCount; }
+        set { episodeMaxAttempts = value; }
+    }
+
+    [SerializeField]
+    int episodeMaxAttempts;
+    public int EpisodeMaxAttempts
+    {
+        get { return episodeMaxAttempts; }
+        set { episodeMaxAttempts = value; }
+    }
+
     public int episodeNumAttempts;
     public bool useAllAttempts;
 
@@ -38,14 +52,32 @@ public class StackingAgent : Agent
     public float partialSuccessReward;
     public float observationSpaceScale;
 
-    public float forceMultiplier;
+    [SerializeField]
+    float forceMultiplier;
+    public float ForceMultiplier
+    {
+        get { return forceMultiplier; }
+        set { forceMultiplier = value; }
+    }
 
     public bool saveImages;
     public bool writeOutSamples;
 
-    public string outFileName;
+    [SerializeField]
+    string outFileName;
+    public string OutFileName
+    {
+        get { return outFileName; }
+        set { outFileName = value; }
+    }
 
-    public ScenarioController scenarioController;
+    [SerializeField]
+    ScenarioController scenarioController;
+    public ScenarioController ScenarioController
+    {
+        get { return scenarioController; }
+        set { scenarioController = value; }
+    }
 
     Dictionary<string, int[]> relDict = new Dictionary<string, int[]>()
     {

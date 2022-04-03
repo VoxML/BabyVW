@@ -2472,6 +2472,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1213012812}
   - component: {fileID: 1213012813}
+  - component: {fileID: 1213012814}
   m_Layer: 0
   m_Name: Stochastic
   m_TagString: Untagged
@@ -2507,7 +2508,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   themeObj: {fileID: 0}
   destObj: {fileID: 0}
-  observationSize: 3
+  observationSize: 8
   useVectorObservations: 1
   noisyVectors: 0
   useHeight: 1
@@ -2521,10 +2522,25 @@ MonoBehaviour:
   destSelectionMethod: 1
   observationSpaceScale: 1
   forceMultiplier: 0.00025
-  saveImages: 0
+  saveImages: 1
   writeOutSamples: 1
-  outFileName: stacker-agent/analysis/trial-data/040122-2cubes-stochastic10-noreset
+  outFileName: stacker-agent/analysis/trial-data/040322-2cubes-stochastic10-noreset
   scenarioController: {fileID: 130105524}
+--- !u!114 &1213012814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213012811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b431fc8a68a4e4081828ebcc1e47b7c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  index: 0
+  maxForceMultiplier: 0.00025
+  agent: {fileID: 1213012813}
 --- !u!1 &1224598361
 GameObject:
   m_ObjectHideFlags: 0

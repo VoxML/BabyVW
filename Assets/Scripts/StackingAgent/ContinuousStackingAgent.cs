@@ -18,7 +18,7 @@ public class ContinuousStackingAgent : StackingAgent
         {
             Vector2 targetOnSurface = new Vector2(vectorAction[0], vectorAction[1]);
 
-            if (scenarioController.IsValidAction(targetOnSurface))
+            if (ScenarioController.IsValidAction(targetOnSurface))
             {
                 GameObject newTheme = SelectThemeObject();
 
@@ -83,14 +83,14 @@ public class ContinuousStackingAgent : StackingAgent
                         targetPos = new Vector3(targetPos.x, targetPos.y - (closestPoint.y - inputPoint.y), targetPos.z);
                     }
 
-                    if (!scenarioController.circumventEventManager)
+                    if (!ScenarioController.circumventEventManager)
                     {
                         themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
                         PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
 
                         string eventStr = string.Format("put({0},{1})", themeObj.name, GlobalHelper.VectorToParsable(targetPos));
                         Debug.LogFormat("StackingAgent.OnActionReceived: executing event: {0}", eventStr);
-                        scenarioController.SendToEventManager(eventStr);
+                        ScenarioController.SendToEventManager(eventStr);
                     }
                     else
                     {
@@ -99,7 +99,7 @@ public class ContinuousStackingAgent : StackingAgent
 
                         themeObj.GetComponent<Rigging>().ActivatePhysics(false);
                         themeObj.GetComponent<Voxeme>().targetPosition = targetPos;
-                        scenarioController.OnEventExecuting(null, null);
+                        ScenarioController.OnEventExecuting(null, null);
                     }
 
                     partialSuccessReward = rewardBoost;
@@ -113,7 +113,7 @@ public class ContinuousStackingAgent : StackingAgent
                     themeObj.transform.position = targetPos;
                     //resolvePhysics = true;
                     lastNumObjsStacked = curNumObjsStacked;
-                    scenarioController.OnEventCompleted(null, null);
+                    ScenarioController.OnEventCompleted(null, null);
                     themeObj.GetComponent<Voxeme>().rigidbodiesOutOfSync = true;
                     PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
                     constructObservation = true;
