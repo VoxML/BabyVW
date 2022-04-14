@@ -222,6 +222,20 @@ public class StackingAgent : Agent
         }
     }
 
+    bool _abortAction = false;
+    public bool abortAction
+    {
+        get { return _abortAction; }
+        set
+        {
+            if (_abortAction != value)
+            {
+                OnAbortActionChanged(_abortAction, value);
+            }
+            _abortAction = value;
+        }
+    }
+
     bool _endEpisode = false;
     public bool endEpisode
     {
@@ -269,6 +283,7 @@ public class StackingAgent : Agent
             scenarioController.EventCompleted += ApplyForce;
             scenarioController.PostEventWaitCompleted += MakeDecisionRequest;
             scenarioController.PostEventWaitCompleted += ResultObserved;
+            scenarioController.AbortAction += AbortAction;
             scenarioController.ForceEndEpisode += ForceEndEpisode;
 
             Time.timeScale = scenarioController.timeScale;
@@ -815,6 +830,12 @@ public class StackingAgent : Agent
         }
     }
 
+    public void AbortAction(object sender, EventArgs e)
+    {
+        episodeNumAttempts--;
+        abortAction = true;
+    }
+
     public void ForceEndEpisode(object sender, EventArgs e)
     {
         endEpisode = true;
@@ -1239,6 +1260,16 @@ public class StackingAgent : Agent
     protected void OnConstructObservationChanged(bool oldVal, bool newVal)
     {
         Debug.Log(string.Format("==================== constructObservation flag changed ==================== {0}->{1}", oldVal, newVal));
+    }
+
+    /// <summary>
+    /// Triggered when the endEpisode flag changes
+    /// </summary>
+    // IN: oldVal -- previous value of abortAction
+    //      newVal -- new or current value of abortAction
+    protected void OnAbortActionChanged(bool oldVal, bool newVal)
+    {
+        Debug.Log(string.Format("==================== abortAction flag changed ==================== {0}->{1}", oldVal, newVal));
     }
 
     /// <summary>

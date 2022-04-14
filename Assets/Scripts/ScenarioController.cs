@@ -139,6 +139,16 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
+    public event EventHandler AbortAction;
+
+    public void OnAbortAction(object sender, EventArgs e)
+    {
+        if (AbortAction != null)
+        {
+            AbortAction(this, e);
+        }
+    }
+
     public event EventHandler ForceEndEpisode;
 
     public void OnForceEndEpisode(object sender, EventArgs e)
@@ -564,7 +574,7 @@ public class ScenarioController : MonoBehaviour
             GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Position),
             GlobalHelper.VectorToParsable(((CalculatedPositionArgs)e).Direction),
             ((CalculatedPositionArgs)e).Distance);
-        OnForceEndEpisode(this, null);  // rather inelegant solution
+        OnAbortAction(this, null);  // rather inelegant solution
     }
 
     bool PointIsInCameraView(Vector3 point, Camera cam)

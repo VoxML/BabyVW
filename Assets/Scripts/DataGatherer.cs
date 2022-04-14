@@ -10,16 +10,16 @@ public class DataGatherer : MonoBehaviour
 {
     public List<List<object>> iterations = new List<List<object>>
     {
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-2cubes-stochastic10-noreset", 0, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_sphere-stochastic10-noreset", 1, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_cylinder-stochastic10-noreset", 2, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_capsule-stochastic10-noreset", 3, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-bigcube_smallcube-stochastic10-noreset", 4, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_egg-stochastic10-noreset", 5, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_rectprism-stochastic10-noreset", 6, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_cone-stochastic10-noreset", 7, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_pyramid-stochastic10-noreset", 8, 10, 10 }),
-        new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_banana-stochastic10-noreset", 9, 10, 10 })
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-2cubes-stochastic10-noreset", 0, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-cube_sphere-stochastic10-noreset", 1, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-cube_cylinder-stochastic10-noreset", 2, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-cube_capsule-stochastic10-noreset", 3, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-bigcube_smallcube-stochastic10-noreset", 4, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-cube_egg-stochastic10-noreset", 5, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-cube_rectprism-stochastic10-noreset", 6, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-cube_cone-stochastic10-noreset", 7, 10, 10 }),
+        new List<object>(new object[] { "stacker-agent/analysis/trial-data/041422-cube_pyramid-stochastic10-noreset", 8, 10, 10 })
+        //new List<object>(new object[] { "stacker-agent/analysis/trial-data/040322-cube_banana-stochastic10-noreset", 9, 10, 10 })
     };
 
     public int index;

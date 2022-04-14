@@ -2524,7 +2524,7 @@ MonoBehaviour:
   forceMultiplier: 0.00025
   saveImages: 1
   writeOutSamples: 1
-  outFileName: stacker-agent/analysis/trial-data/040322-2cubes-stochastic10-noreset
+  outFileName: stacker-agent/analysis/trial-data/041322-cube_rectprism-stochastic10-noreset
   scenarioController: {fileID: 130105524}
 --- !u!114 &1213012814
 MonoBehaviour:
