@@ -4,12 +4,7 @@ For best results, BabyVW currently uses Unity 2020.2.1.
 
 This repository depends on VoxSim: https://www.github.com/VoxML/VoxSim.  Clone BabyVW, then:
 
-```
-$ git submodule init
-$ git submodule update --remote --merge
-```
-
-Finally, follow the depedency installation instructions at the VoxSim link.
+Download the required VoxSim assets as a package [here](https://github.com/VoxML/voxicon/blob/master/packages/VoxSimPlatform.unitypackage.zip?raw=true), and extract the Unity package from the zip file. In Unity, delete the file that is in the Plugins folder titled `VoxSimPlatform`. Import the downloaded Unity package. Everything should appear in the *Plugins* folder.
 
 ## Setting Up Learning Environment
 
@@ -44,13 +39,5 @@ The BabyVW learning environment uses Stable-Baselines3, which is written using P
 ```
 
 The main training and testing pipeline should work fine without these dependencies.
-
-## Entire Environments
-
-You can create the entire environment (including optional dependencies) in one command by running:
-
-* (On M1 Macs) `conda create --name ml-agents --file ml-agents-conda-mac-m1.txt`.
-* (On Intel Macs) `conda create --name ml-agents --file ml-agents-conda-mac-intel.txt`.
-* (On Windows) `conda create --name ml-agents --file ml-agents-conda-win.txt`.
 
 **Next, check out an environment and agent, e.g., the [stacker](https://github.com/VoxML/BabyVW/blob/master/Stacker-Agent.md)**
