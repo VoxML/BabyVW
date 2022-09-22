@@ -22,7 +22,6 @@ $ conda activate ml-agents
 (ml-agents) $ pip install numpy
 (ml-agents) $ pip install stable_baselines3
 (ml-agents) $ python -m pip install mlagents==0.28.0
-(ml-agents) $ pip install tensorboard
 (ml-agents) $ pip install notebook
 (ml-agents) $ pip install sklearn
 ```
