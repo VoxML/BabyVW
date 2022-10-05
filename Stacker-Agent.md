@@ -6,7 +6,7 @@ First, make sure both elements under "Interactable Object Types" are set to "Cub
 
 To change the object types, activate ObjectPrefabs in the inspector and drag any of the child objects of `ObjectPrefabs` from the hierarchy onto "Interactable Object Types" to repopulate the fields.
 
-Make sure `VectorDDPGAgent` (under `AgentArchitectures`) is enabled and all others are disabled (only one agent architecture should be enabled at a time):
+Make sure `VectorDDPGAgent` (under `AgentArchitectures`) is enabled and all others including Stochastic are disabled (only one agent architecture should be enabled at a time):
 
 <img width="250" alt="image" src="https://user-images.githubusercontent.com/11696878/153765917-95f564dc-9d02-4b79-a751-8e4a21bbd084.png">
 
