@@ -55,12 +55,12 @@ Tested for 100 timesteps
 
 Using the same Unity settings as above, run `python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <your model name here> --vector_obs --train -p COG HGT`.  This will train a model using the provided DDPG policy in the `cube_stacking_model` directory for 2000 timesteps (about 30 minutes on a Mac M1).  The saved model will have a lot of automatically-generated suffixes attached, such as `0.0,0.0-1000.0,1000.0`, which encode certain parameters of the action space, observation space, and training regime, to help identify the properties of each saved model after the fact.
 
-# Fine-tuning a model
+# Continual Learning
 
-Fine tuning uses the same procedure as above, except the command is changed slightly:
+This uses the same procedure as above, except the command is changed slightly:
 `python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <oldModel> -M <newModel> --vector_obs --train -p COG HGT`
 
-Instead of initializing weights randomly, this command loads up the weights of `oldModel`, continues training for `t` timesteps, and saves the result at `newModel`.
+Timesteps can have any value.
 
 # Stochastic baseline
 
