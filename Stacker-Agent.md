@@ -58,7 +58,7 @@ Using the same Unity settings as above, run `python ddpg.py -b stacker -l cube_s
 # Continual Learning
 
 This uses the same procedure as above, except the command is changed slightly:
-`python ddpg.py -b stacker -l cube_stacking_model -t 2000 -m <oldModel> -M <newModel> --vector_obs --train -p COG HGT`
+`python ddpg.py -b stacker -l cube_stacking_model -t <timesteps> -m <oldModel> -M <newModel> --vector_obs --train -p COG HGT`
 
 Timesteps can have any value.
 
