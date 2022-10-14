@@ -14,7 +14,7 @@ Make sure "Continuous Stcking Agent" (component of `VectorDDPGAgent`) is set as 
 
 <img width="400" alt="image" src="https://user-images.githubusercontent.com/11696878/159133389-a90ffb58-d629-423e-95c8-a5adda047844.png">
 
-Then, run the following command from within the `ml-agents` Conda environment: `python ddpg.py -b stacker -l cube_stacking_model -t 100 -m 2cubes-20211212-0.0,0.0-1000.0,1000.0-2000-COG.HGT --vector_obs --test -p COG HGT`, and play the Unity scene.  This should connect and test one of the provided trained policies for 100 timesteps, print a summary, and generate a reward plot!
+Then, run the following command from within the `ml-agents` Conda environment: `python ddpg.py -b stacker -l cube_stacking_model -t <timesteps> -m 2cubes-20211212-0.0,0.0-1000.0,1000.0-2000-COG.HGT --vector_obs --test -p COG HGT`, and play the Unity scene.  This should connect and test one of the provided trained policies for 100 timesteps, print a summary, and generate a reward plot!
 
 (e.g.,)
 ```
