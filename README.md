@@ -13,7 +13,7 @@ Finally, follow the depedency installation instructions at the VoxSim link.
 
 ## Setting Up Learning Environment
 
-The learning environment integrates Unity ML-Agents, OpenAI Gym, and the [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/) reinforcement learning package.  The Unity ML-Agents package is included in `manifest.json` and should be available when this repository is cloned.  To complete the setup of the learning environment, you should:
+The learning environment integrates Unity ML-Agents, and OpenAI Gym. The Unity ML-Agents package is included in `manifest.json` and should be available when this repository is cloned.  To complete the setup of the learning environment, you should:
 
 ```
 $ conda create --name ml-agents python=3.8
