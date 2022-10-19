@@ -38,7 +38,6 @@ Tested for 100 timesteps
 * *Episode Max Attempts*: Maximum number of time to attempt stacking before giving up.
 * *Use All Attempts*: If unchecked, the episode will terminate once the theme object is stacked successfully; otherwise, the agent will make as many attempts as set in `Episode Max Attempts` and not terminate the episode even when successful (the episode only terminates when the max number of attempts is reached, regardless of the result of any individual attempt).
 * *Dest Selection Method*: `Highest` if the highest object in the scene should be used as the destination object for the next action, `Consistent` if the destination object should be kept constant across all actions (not suitable for more that 2-object scenarios).
-* *Pos Reward Multiplier*: TODO
 * *Neg Reward Multiplier*: TODO
 * *Observation Space Scale*: TODO
 * *Force Multplier*: TODO
