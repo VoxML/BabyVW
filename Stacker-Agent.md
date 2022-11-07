@@ -53,12 +53,6 @@ Tested for 100 timesteps
 
 Using the same Unity settings as above, run `python ddpg.py -b stacker -l cube_stacking_model -t <timesteps> -m <your model name here> --vector_obs --train -p COG HGT`.  This will train a model using the provided DDPG policy in the `cube_stacking_model` directory for 2000 timesteps (about 30 minutes on a Mac M1).  The saved model will have a lot of automatically-generated suffixes attached, such as `0.0,0.0-1000.0,1000.0`, which encode certain parameters of the action space, observation space, and training regime, to help identify the properties of each saved model after the fact.
 
-# Continual Learning
-
-This uses the same procedure as above, except the command is changed slightly:
-`python ddpg.py -b stacker -l cube_stacking_model -t <timesteps> -m <oldModel> -M <newModel> --vector_obs --train -p COG HGT`
-
-Timesteps can have any value.
 
 # Stochastic baseline
 
