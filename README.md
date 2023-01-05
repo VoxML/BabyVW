@@ -13,7 +13,7 @@ Finally, follow the depedency installation instructions at the VoxSim link.
 
 ## Setting Up Learning Environment
 
-The learning environment is based on Unity ML-Agents. The Unity ML-Agents package is included in `manifest.json` and should be available when this repository is cloned.  To complete the setup of the learning environment, you should:
+The learning environment is based on Unity ML-Agents (release 2). The Unity ML-Agents package is included in `manifest.json` and should be available when this repository is cloned.  To complete the setup of the learning environment, you should:
 
 ```
 $ conda create --name ml-agents python=3.8
