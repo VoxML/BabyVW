@@ -16,15 +16,6 @@ Make sure "Continuous Stcking Agent" (component of `VectorDDPGAgent`) is set as 
 
 Then, run the following command from within the `ml-agents` Conda environment: `python ddpg.py -b stacker -l cube_stacking_model -t <timesteps> -m 2cubes-20211212-0.0,0.0-1000.0,1000.0-2000-COG.HGT --vector_obs --test -p COG HGT`, and play the Unity scene.  This should connect and test one of the provided trained policies for 100 timesteps, print a summary, and generate a reward plot!
 
-===== Summary =====
-Tested for 100 timesteps
-	69 episodes
-	Total reward: 66342.0
-	Max reward achieved: 1000.0
-	Mean reward per episode: 961.4783
-```
-
-<img width="640" alt="image" src="https://user-images.githubusercontent.com/11696878/153766179-5db11c46-7edd-4d5a-a922-751b5ab9797a.png">
 
 
 
