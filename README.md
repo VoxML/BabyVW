@@ -21,7 +21,7 @@ $ conda activate ml-agents
 (ml-agents) $ conda install grpcio
 (ml-agents) $ pip install numpy
 (ml-agents) $ pip install stable_baselines3
-(ml-agents) $ python -m pip install mlagents==0.28.0
+(ml-agents) $ python -m pip install mlagents
 (ml-agents) $ pip install notebook
 (ml-agents) $ pip install sklearn
 ```
