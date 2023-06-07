@@ -25,6 +25,8 @@ public class ScenarioController : MonoBehaviour
     public GameObject surface;
     public Transform objectTypes;
     public List<Transform> interactableObjectTypes;
+    public List<Material> materialTypes;
+    public List<PhysicMaterial> physicMaterialTypes;
     public int numTotalObjs;
     public int numInteractableObjs;
     public bool instantiateObjectTypesInOrder;
@@ -494,6 +496,19 @@ public class ScenarioController : MonoBehaviour
             newObj.transform.parent = backgroundObjects.transform;
             voxemeInit.InitializeVoxemes();
         }
+    }
+
+    public void PlaceMaterialBlock()
+    {
+        Transform t = interactableObjectTypes[0];
+        GameObject newBlock = Instantiate(t.gameObject);
+        newBlock.transform.position = new Vector3(0, 0.05f, 0);
+        newBlock.AddComponent<Voxeme>();
+        newBlock.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
+        int materialTypeIndex = UnityEngine.Random.Range(0, materialTypes.Count);
+        newBlock.GetComponent<Renderer>().material = materialTypes[materialTypeIndex];
+        newBlock.GetComponent<Collider>().material = physicMaterialTypes[materialTypeIndex];
+        newBlock.name = materialTypes[materialTypeIndex].name + " Block";
     }
 
     public void CenterObjectInView(GameObject obj)
