@@ -503,12 +503,17 @@ public class ScenarioController : MonoBehaviour
         Transform t = interactableObjectTypes[0];
         GameObject newBlock = Instantiate(t.gameObject);
         newBlock.transform.position = new Vector3(0, 0.05f, 0);
+        newBlock.transform.parent = interactableObjects.transform;
         newBlock.AddComponent<Voxeme>();
         newBlock.GetComponent<Voxeme>().predicate = objectToVoxemePredMap[t.name];
         int materialTypeIndex = UnityEngine.Random.Range(0, materialTypes.Count);
         newBlock.GetComponent<Renderer>().material = materialTypes[materialTypeIndex];
         newBlock.GetComponent<Collider>().material = physicMaterialTypes[materialTypeIndex];
         newBlock.name = materialTypes[materialTypeIndex].name + " Block";
+
+        voxemeInit.InitializeVoxemes();
+        objectsInited = true;
+        OnObjectsInited(this, null);
     }
 
     public void CenterObjectInView(GameObject obj)

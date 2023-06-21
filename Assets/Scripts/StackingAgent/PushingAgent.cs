@@ -419,12 +419,15 @@ public class PushingAgent : Agent
                     OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
                 }
 
+                /**
                 if (curNumObjsStacked == interactableObjs.Count)
                 {
                     Debug.LogFormat("StochasticAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
 
                     endEpisode = true;
                 }
+                **/
+
                 else if (episodeNumAttempts >= episodeMaxAttempts)
                 {
                     endEpisode = true;
@@ -843,33 +846,13 @@ public class PushingAgent : Agent
 
     protected GameObject SelectThemeObject()
     {
-        GameObject theme = null;
+        GameObject theme = interactableObjs[0].gameObject;
 
-        Debug.LogFormat("StackingAgent.SelectThemeObject: usedDestObjs = [{0}]", string.Join(", ",
-            usedDestObjs.Select(o => o.name)));
-
-        List<Transform> sortedByHeight = interactableObjs.Except(usedDestObjs).Where(t => SurfaceClear(t.gameObject))
-             .OrderBy(t => t.position.y).ToList();
-        Debug.LogFormat("StackingAgent.SelectThemeObject: object sequence = {0}", string.Format("[{0}]", string.Join(",",
-            sortedByHeight.Select(t => string.Format("({0}, {1})", t.name, t.transform.position.y)))));
-
-        try
-        { 
-            theme = sortedByHeight.First().gameObject;
-
-            themeStartLocation = new Vector3(theme.transform.position.x, theme.transform.position.y, theme.transform.position.z);
-            themeStartRotation = new Vector3(theme.transform.eulerAngles.x > 180.0f ? theme.transform.eulerAngles.x - 360.0f : theme.transform.eulerAngles.x,
+        themeStartLocation = new Vector3(theme.transform.position.x, theme.transform.position.y, theme.transform.position.z);
+        themeStartRotation = new Vector3(theme.transform.eulerAngles.x > 180.0f ? theme.transform.eulerAngles.x - 360.0f : theme.transform.eulerAngles.x,
                 theme.transform.eulerAngles.y > 180.0f ? theme.transform.eulerAngles.y - 360.0f : theme.transform.eulerAngles.y,
                 theme.transform.eulerAngles.z > 180.0f ? theme.transform.eulerAngles.z - 360.0f : theme.transform.eulerAngles.z);
 
-        }
-        catch (Exception ex)
-        {
-            if (ex is InvalidOperationException)
-            {
-                scenarioController.OnForceEndEpisode(this, null);  // rather inelegant solution
-            }
-        }
         return theme;
     }
 
@@ -1002,7 +985,8 @@ public class PushingAgent : Agent
         Debug.LogFormat("StackingAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;
 
-        scenarioController.PlaceRandomly(scenarioController.surface); //todo: this should only place one block of random material at a set location
+        //scenarioController.PlaceRandomly(scenarioController.surface);
+        scenarioController.PlaceMaterialBlock(); //currently causes episodes to start firing off
         PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
 
         GameObject newTheme = SelectThemeObject();

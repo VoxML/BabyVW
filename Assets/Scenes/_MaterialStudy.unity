@@ -392,6 +392,14 @@ MonoBehaviour:
   interactableObjectTypes:
   - {fileID: 1242741016}
   - {fileID: 1242741016}
+  materialTypes:
+  - {fileID: 2100000, guid: 7a8c222141a5134499137986ab6ae6c6, type: 2}
+  - {fileID: 2100000, guid: fe5edbad317f13d43991b283f8f8afb0, type: 2}
+  - {fileID: 2100000, guid: dead58d0274ffec448c97126249711e2, type: 2}
+  physicMaterialTypes:
+  - {fileID: 13400000, guid: 6b7a88cdfe7308d4d84c53abd59f8fbb, type: 2}
+  - {fileID: 13400000, guid: db6f1422a213dac42874641e36cbd7c2, type: 2}
+  - {fileID: 13400000, guid: d3628d528e6ac444c91616f996f63299, type: 2}
   numTotalObjs: 2
   numInteractableObjs: 2
   instantiateObjectTypesInOrder: 1
