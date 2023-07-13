@@ -24,9 +24,7 @@ def main():
     parser.add_argument('--total_timesteps', '-t', metavar='TOTALTIMESTEPS', default=500, help='total timesteps')
     parser.add_argument('--model_name', '-m', metavar='MODELNAME', default='ddpg_saved', help='name of model to save/load')
     parser.add_argument('--new_model_name', '-M', metavar='NEWMODELNAME', default=None, help='name of new model to save if fine-tuning starting with another model')
-    parser.add_argument('--visual_obs', action='store_true', default=False, help='use visual observations (leave blank to use both)')
-    parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations (leave blank to use both)')
-    parser.add_argument('--priors', '-p', metavar='PRIORS', type=str, nargs='+', help='set of priors to use (one required): HGT = height; REL = relations; COG = center of gravity')
+    parser.add_argument('--vector_obs', action='store_true', default=False, help='use vector observations')
     parser.add_argument('--train', action='store_true', default=False, help='train mode')
     parser.add_argument('--test', action='store_true', default=False, help='test mode')
 
@@ -37,19 +35,16 @@ def main():
     total_timesteps = int(args.total_timesteps)
     model_name = args.model_name
     new_model_name = args.new_model_name
-    priors = sorted(args.priors)
-    visual_obs = args.visual_obs
     vector_obs = args.vector_obs
     train = args.train
     test = args.test
     
-    if not visual_obs and not vector_obs:
-        visual_obs = True
+    if not vector_obs:
         vector_obs = True
     
     os.makedirs(log_dir, exist_ok=True)
 
-    env = StackerEnv(visual_observation=visual_obs,vector_observation=vector_obs,priors=priors)
+    env = StackerEnv(vector_observation=vector_obs)
 
     #env = make_vec_env(lambda:env, n_envs=2)
 
@@ -66,11 +61,7 @@ def main():
 
     if train:
         if new_model_name is None:
-            if visual_obs and vector_obs:
-                model = DDPG("MultiInputPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-            elif visual_obs:
-                model = DDPG("CnnPolicy", env, learning_rate=1e-4, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
-            elif vector_obs:
+            if vector_obs:
                 model = DDPG("MlpPolicy", env, learning_rate=1e-3, action_noise=action_noise, verbose=1, tensorboard_log="./" + tb_name + "/")
         else:
             model = DDPG.load(log_dir + "/" + model_name, env)
@@ -84,10 +75,10 @@ def main():
         print("Training took %.4f seconds" % float(time.time()-start_time))
 
         if new_model_name is None:
-            # create filename: model name + date + action space + trainings steps + priors
+            # create filename: model name + date + action space + trainings steps
             filename = model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
                 str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
-                "-" + str(total_timesteps) + "-" + ".".join(priors)
+                "-" + str(total_timesteps)
             num_identical_filenames = len([f for f in os.listdir((log_dir+"/"+filename).rsplit('/')[0]) \
                 if f.startswith((log_dir+"/"+filename).rsplit('/')[-1])])
             if num_identical_filenames > 0:
@@ -95,10 +86,10 @@ def main():
             model.save(log_dir + "/" + filename)
             print("Model saved at", log_dir + "/" + filename)
         else:
-            # create filename: model name + date + action space + trainings steps + priors
+            # create filename: model name + date + action space + trainings steps
             filename = new_model_name + "-" + datetime.now().strftime("%Y%m%d") + "-" + \
                 str(",".join(list(map(str,env.action_space.low)))) + "-" + str(",".join(list(map(str,env.action_space.high)))) + \
-                "-" + str(total_timesteps) + "-" + ".".join(priors)
+                "-" + str(total_timesteps)
             num_identical_filenames = len([f for f in os.listdir((log_dir+"/"+filename).rsplit('/')[0]) \
                 if f.startswith((log_dir+"/"+filename).rsplit('/')[-1])])
             if num_identical_filenames > 0:

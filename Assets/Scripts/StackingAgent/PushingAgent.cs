@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Timers;
 using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
@@ -22,9 +23,6 @@ public class PushingAgent : Agent
     public GameObject themeObj, destObj;
     public int observationSize;
     public bool useVectorObservations, noisyVectors;
-    public bool useHeight;
-    public bool useRelations;
-    public bool useCenterOfGravity;
 
     [SerializeField]
     int episodeCount;
@@ -253,7 +251,11 @@ public class PushingAgent : Agent
     protected int curNumObjsStacked, lastNumObjsStacked;
 
     List<float> observation, lastObservation, noisyObservation;
-    Vector2 centerOfGravity;
+
+    public float actionBufferTime = 2000f;
+    Timer actionBufferTimer;
+    bool actionBufferElapsed = false;
+ 
 
     void Start()
     {
@@ -267,7 +269,10 @@ public class PushingAgent : Agent
             GetComponent<BehaviorParameters>().BrainParameters.VectorObservationSize = 0;
         }
 
-        lastAction = new float[] { -Mathf.Infinity, -Mathf.Infinity };
+        lastAction = new float[] { 0, 0 };
+
+        actionBufferTimer = new Timer(actionBufferTime);
+        actionBufferTimer.Elapsed += OnBufferElapsed;
 
         episodeCount = 0;
 
@@ -275,11 +280,10 @@ public class PushingAgent : Agent
         {
             scenarioController.usingRLClient = true;
             scenarioController.squareFOV = GetComponent<CameraSensorComponent>() != null;
-            scenarioController.imagesDest = outFileName.Replace(".csv","");
+            scenarioController.imagesDest = outFileName.Replace(".csv", "");
             scenarioController.saveImages = saveImages;
             scenarioController.ObjectsInited += ObjectsPlaced;
             scenarioController.EventExecuting += ExecutingEvent;
-            scenarioController.EventCompleted += CalcCenterOfGravity;
             scenarioController.EventCompleted += ApplyForce;
             scenarioController.PostEventWaitCompleted += MakeDecisionRequest;
             scenarioController.PostEventWaitCompleted += ResultObserved;
@@ -294,19 +298,22 @@ public class PushingAgent : Agent
         }
 
         defaultMaxStep = MaxStep;
-
-        if (useRelations)
-        {
-            if (scenarioController.circumventEventManager)
-            {
-                Debug.LogWarning("StochasticAgent.Start: using relation requires use of the event manager! Make sure event manager is not being circumvented.");
-            }
-        }
     }
 
     void Update()
     {
+        //Debug.Log($"{running} {waitingForAction} {!resolvePhysics} {!endEpisode}");
         running = objectsPlaced && episodeStarted;
+
+        if (!waitingForAction)
+        {
+            actionBufferTimer.Enabled = true;
+        }
+        if (themeObj.GetComponent<Rigidbody>().velocity.magnitude == 0 && actionBufferElapsed)
+        {
+            actionBufferElapsed = false;
+            waitingForAction = true;
+        }
 
         if (running && waitingForAction && !resolvePhysics && !endEpisode)
         {
@@ -336,7 +343,7 @@ public class PushingAgent : Agent
         {
             observation = ConstructObservation().Select(o => (float)o).ToList();
             noisyObservation = observation.Select(o => o + (float)GaussianNoise(0, 0.1f)).ToList();
-            float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ? 
+            float reward = (curNumObjsStacked - lastNumObjsStacked) > 0 ?
                 (curNumObjsStacked - lastNumObjsStacked) * (curNumObjsStacked - 1) :
                 (curNumObjsStacked == interactableObjs.Count) ?
                 (curNumObjsStacked - 1) * (curNumObjsStacked - 1) : (curNumObjsStacked - lastNumObjsStacked) - 1;
@@ -361,72 +368,18 @@ public class PushingAgent : Agent
                     hits.Select(h => string.Format("{{{0}:{1}}}", h.collider.name, h.transform.position.y)))));
 
             Debug.LogFormat("StackingAgent.Update: usedDestObjs = {0}", string.Format("[{0}]", string.Join(", ",
-                    usedDestObjs.Select(o => string.Format("{{{0}:{1}}}", o.name, o.transform.position.y))))); 
+                    usedDestObjs.Select(o => string.Format("{{{0}:{1}}}", o.name, o.transform.position.y)))));
 
             usedDestObjs = hits.Select(h => GlobalHelper.GetMostImmediateParentVoxeme(h.collider.gameObject).transform).ToList();
 
-            //GameObject newDest = sortedByHeight.Except(new List<Transform>() { themeObj.transform }).First().gameObject;
-            GameObject newDest = sortedByHeight.First().gameObject;
-
-            Debug.LogFormat("StackingAgent.Update: newDest = {0}", string.Format("{{{0}:{1}}}", newDest.name, newDest.transform.position.y));
-
-            if (newDest != destObj)
-            {
-                if ((Mathf.Abs(newDest.transform.position.y - destObj.transform.position.y) < Constants.EPSILON) ||
-                        (destSelectionMethod == DestinationSelection.Consistent))
-                {
-                    newDest = destObj;
-                }
-            }
-
-            //if (curNumObjsStacked - lastNumObjsStacked != 0.0f)
-            //{
-            //    Debug.LogFormat("StackingAgent.Update: curNumObjsStacked = {0}; lastNumObjsStacked = {1}",
-            //        curNumObjsStacked, lastNumObjsStacked);
-            //    if (curNumObjsStacked - lastNumObjsStacked <= 0.0f)
-            //    {
-            //        Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
-            //            usedDestObjs.Select(o => o.name)));
-            //        usedDestObjs = usedDestObjs.Take(usedDestObjs.Count - 1 + (int)(curNumObjsStacked - lastNumObjsStacked)).ToList();
-            //        Debug.LogFormat("StackingAgent.Update: usedDestObjs = [{0}]", string.Join(", ",
-            //            usedDestObjs.Select(o => o.name)));
-            //    }
-
-            //    // figure out which is the new destination object
-            //    sortedByHeight = interactableObjs.Where(t => SurfaceClear(t.gameObject)).OrderByDescending(t => t.position.y).ToList();
-            //    Debug.LogFormat("StackingAgent.Update: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
-            //        sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
-
-            //    GameObject newDest = sortedByHeight.First().gameObject;
-
-            //    OnDestObjChanged(destObj, newDest);
-            //    destObj = newDest;
-
-            //    if (!usedDestObjs.Contains(destObj.transform))
-            //    {
-            //        usedDestObjs.Add(destObj.transform);
-            //    }
-            //}
-
             if (!useAllAttempts)
             {
-                OnDestObjChanged(destObj, newDest);
-                destObj = newDest;
 
                 if (!usedDestObjs.Contains(destObj.transform))
                 {
                     usedDestObjs.Add(destObj.transform);
                     OnUsedDestObjsChanged(usedDestObjs.GetRange(0, usedDestObjs.Count - 1), usedDestObjs);
                 }
-
-                /**
-                if (curNumObjsStacked == interactableObjs.Count)
-                {
-                    Debug.LogFormat("StochasticAgent.Update: observation = {0} (interactableObjs.Count = {1})", observation, interactableObjs.Count);
-
-                    endEpisode = true;
-                }
-                **/
 
                 else if (episodeNumAttempts >= episodeMaxAttempts)
                 {
@@ -437,8 +390,6 @@ public class PushingAgent : Agent
             {
                 if (curNumObjsStacked != interactableObjs.Count)
                 {
-                    OnDestObjChanged(destObj, newDest);
-                    destObj = newDest;
 
                     if (!usedDestObjs.Contains(destObj.transform))
                     {
@@ -550,7 +501,7 @@ public class PushingAgent : Agent
 
         float[] arr4 = new float[] {
             lastForceApplied.x, lastForceApplied.y, lastForceApplied.z
-        }   ;
+        };
 
         float[] arr5 = new float[] {
             themeBounds.center.x,themeBounds.center.y,themeBounds.center.z,
@@ -663,13 +614,6 @@ public class PushingAgent : Agent
         Debug.LogFormat("StackingAgent.ObjectsPlaced: object sequence = {0}", string.Format("[{0}]", string.Join(", ",
                     sortedByHeight.Select(t => string.Format("{{{0}:{1}}}", t.name, t.transform.position.y)))));
 
-        GameObject newDest = destObj == null ? null : destObj;
-
-        newDest = sortedByHeight.First().gameObject;
-
-        OnDestObjChanged(destObj, newDest);
-        destObj = newDest;
-
         if (!usedDestObjs.Contains(destObj.transform))
         {
             usedDestObjs.Add(destObj.transform);
@@ -692,30 +636,6 @@ public class PushingAgent : Agent
         {
             executingEvent = true;
         }
-    }
-
-    public void CalcCenterOfGravity(object sender, EventArgs e)
-    {
-        themeMidLocation = new Vector3(themeObj.transform.position.x, themeObj.transform.position.y, themeObj.transform.position.z);
-        themeMidRotation = new Vector3(themeObj.transform.eulerAngles.x > 180.0f ? themeObj.transform.eulerAngles.x - 360.0f : themeObj.transform.eulerAngles.x,
-            themeObj.transform.eulerAngles.y > 180.0f ? themeObj.transform.eulerAngles.y - 360.0f : themeObj.transform.eulerAngles.y,
-            themeObj.transform.eulerAngles.z > 180.0f ? themeObj.transform.eulerAngles.z - 360.0f : themeObj.transform.eulerAngles.z);
-
-        // calc center of stack bounds
-        // calc center of theme object bounds
-        // CoG = center of theme bounds - center of stack bounds
-        Debug.LogFormat("StackingAgent.CalcCenterOfGravity: stack = [{0}]", string.Join(", ",
-                        usedDestObjs.Select(o => o.name)));
-
-        Bounds stackBounds = GlobalHelper.GetObjectWorldSize(usedDestObjs.Select(t => t.gameObject).ToList());
-        Bounds themeBounds = GlobalHelper.GetObjectWorldSize(themeObj);
-        centerOfGravity = new Vector2(themeBounds.center.x, themeBounds.center.z) -
-            new Vector2(stackBounds.center.x, stackBounds.center.z);
-        // scale by size of the stack bounds
-        centerOfGravity = new Vector2(centerOfGravity.x / stackBounds.size.x * observationSpaceScale,
-            centerOfGravity.y / stackBounds.size.z * observationSpaceScale);
-
-        Debug.LogFormat("StackingAgent.CalcCenterOfGravity: <{0};{1}>", centerOfGravity.x, centerOfGravity.y);
     }
 
     public void ApplyForce(object sender, EventArgs e)
@@ -858,63 +778,15 @@ public class PushingAgent : Agent
 
     protected List<float> ConstructObservation()
     {
-        // sort objects by height
-        List<Transform> sortedByHeight = interactableObjs.OrderByDescending(t => t.position.y).ToList();
-        Debug.LogFormat("StackingAgent.ConstructObservation: [{0}]", string.Join(",", sortedByHeight.Select(o => o.position.y).ToList()));
-
-        lastNumObjsStacked = curNumObjsStacked;
-
-        Transform topmostObj = sortedByHeight.First();
-        Debug.LogFormat("StackingAgent.ConstructObservation: topmostObj = {0}", topmostObj.name);
-        RaycastHit[] hits = Physics.RaycastAll(topmostObj.position, Vector3.down, topmostObj.position.y-Constants.EPSILON);
-        Debug.LogFormat("StackingAgent.ConstructObservation: hits = {0}", string.Format("[{0}]", string.Join(", ",
-            hits.Select(h => string.Format("{{{0}:{1}}}", h.collider.name, h.transform.position.y)))));
-        curNumObjsStacked = hits.Length+1;
-
-        // take the topmost object and round its y-coord up to nearest int
-        //  multiply by 10 (blocks are .1 x .1 x .1)
-        //Transform topmostObj = sortedByHeight.First();
-        //Transform secondObj = sortedByHeight[1];
-        //(int)Mathf.Ceil((topmostObj.position.y - secondObj.position.y) / topmostObj.localScale.y);
-        //curNumObjsStacked = (int)Mathf.Ceil(sortedByHeight.First().transform.position.y * 10);
-
-        Debug.LogFormat("StackingAgent.ConstructObservation: curNumObjsStacked = {0}; lastNumObjsStacked = {1}", curNumObjsStacked, lastNumObjsStacked);
-
-        List<float> obs = new List<float>();
-        if (useHeight)
-        {
-            obs.Add(curNumObjsStacked*observationSpaceScale);
-        }
-
-        if (useRelations)
-        {
-            List<string> rels = scenarioController.GetRelations(destObj, themeObj);
-            float[] relObs = new float[] { 0, 0, 0, 0, 0 };
-            if (rels.Count == 0)
-            {
-                obs.AddRange(relObs);
-            }
-            else
-            {
-                foreach (string r in rels)
-                {
-                    if (relDict.Keys.Contains(r))
-                    {
-                        for (int i = 0; i < relObs.Length; i++)
-                        {
-                            relObs[i] += relDict[r][i];
-                        }
-                    }
-                }
-                obs.AddRange(relObs);
-            }
-        }
-
-        if (useCenterOfGravity)
-        {
-            obs.Add(centerOfGravity.x*observationSpaceScale);
-            obs.Add(centerOfGravity.y*observationSpaceScale);
-        }
+        float dist_x = destObj.transform.position.x - themeObj.transform.position.x;
+        float dist_z = destObj.transform.position.z - themeObj.transform.position.z;
+        List<float> obs = new List<float>{
+            (lastAction != null) ? lastAction[0] : 0,
+            (lastAction != null) ? lastAction[1] : 0,
+            (lastObservation != null) ? lastObservation[4] : dist_x,
+            (lastObservation != null) ? lastObservation[5] : dist_z,
+            dist_x,
+            dist_z };
 
         return obs;
     }
@@ -985,67 +857,19 @@ public class PushingAgent : Agent
         Debug.LogFormat("StackingAgent.OnEpisodeBegin: Beginning episode {0}", episodeCount);
         episodeTotalReward = 0f;
 
-        //scenarioController.PlaceRandomly(scenarioController.surface);
-        scenarioController.PlaceMaterialBlock(); //currently causes episodes to start firing off
-        PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
-
-        GameObject newTheme = SelectThemeObject();
+        GameObject newTheme = scenarioController.PlaceMaterialBlock();
         OnThemeObjChanged(themeObj, newTheme);
         themeObj = newTheme;
 
-        curNumObjsStacked = 1;
-        lastNumObjsStacked = 1;
+        GameObject newDest = scenarioController.PlaceGoal();
+        OnDestObjChanged(destObj, newDest);
+        destObj = newDest;
 
-        if (useVectorObservations)
-        {
-            observation = new List<float>();
+        scenarioController.InitializeVoxemes();
+        PhysicsHelper.ResolveAllPhysicsDiscrepancies(false);
 
-            if (useHeight)
-            {
-                observation.Add(curNumObjsStacked*observationSpaceScale);
-            }
-
-            if (useRelations)
-            {
-                List<string> rels = scenarioController.GetRelations(destObj, themeObj);
-                if (rels.Count == 0)
-                {
-                    observation.AddRange(new float[] { 0, 0, 0, 0, 0 });
-                }
-                else
-                {
-                    foreach (string r in rels)
-                    {
-                        if (relDict.Keys.Contains(r))
-                        {
-                            foreach (int i in relDict[r])
-                            {
-                                observation.Add(i * observationSpaceScale);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (useCenterOfGravity)
-            {
-                CalcCenterOfGravity(null,null);
-                observation.AddRange(new float[]{ centerOfGravity.x*observationSpaceScale, centerOfGravity.y*observationSpaceScale });
-            }
-
-            noisyObservation = observation.Select(o => o == 0 ? o : o + (float)GaussianNoise(0, 0.1f)).ToList();
-
-            for (int i = 0; i < observation.Count; i++)
-            {
-                sensor.AddObservation(noisyVectors ? noisyObservation[i] : observation[i]);
-            }
-
-            Debug.LogFormat("StackingAgent.OnEpisodeBegin: Collecting {0} observation(s) - [{1}]",
-                sensor.ObservationSize(), noisyVectors ?
-                string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
-                string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
-        }
-
+        observation = ConstructObservation();
+        //Debug.Log(observation);
         episodeStarted = true;
         episodeBeginTime = DateTime.Now;
 
@@ -1070,51 +894,22 @@ public class PushingAgent : Agent
         {
             if (!executingEvent)
             {
-                if (useVectorObservations)
-                {
-                    for (int i = 0; i < observation.Count; i++)
-                    {
-                        sensor.AddObservation(noisyVectors ? noisyObservation[i] : observation[i]);
-                    }
-                    Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                        sensor.ObservationSize(), noisyVectors ?
-                        string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
-                        string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
-                }
-            }
-            else
-            {
-                if (useVectorObservations)
-                {
-                    for (int i = 0; i < lastObservation.Count; i++)
-                    {
-                        sensor.AddObservation(lastObservation[i]);
-                    }
-                    Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                        sensor.ObservationSize(), noisyVectors ?
-                        string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
-                        string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
-                }
-            }
-
-            waitingForAction = true;
-        }
-        else
-        {
-            if (useVectorObservations)
-            {
-                // if the episode has terminated, return the last observation
-                //  (i.e., the observation at the final state)
                 for (int i = 0; i < observation.Count; i++)
                 {
-                    sensor.AddObservation(noisyVectors ? noisyObservation[i] : observation[i]);
+                    sensor.AddObservation(observation[i]);
                 }
-                Debug.LogFormat("StackingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
-                    sensor.ObservationSize(), noisyVectors ?
-                    string.Join(", ", noisyObservation.Select(o => o.ToString()).ToArray()) :
-                    string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
+                Debug.LogFormat("PushingAgent.CollectObservations: Collecting {0} observation(s) - [{1}]",
+                    sensor.ObservationSize(), string.Join(", ", observation.Select(o => o.ToString()).ToArray()));
             }
+            waitingForAction = true;
         }
+    }
+
+    public void OnBufferElapsed(object sender, ElapsedEventArgs e)
+    {
+        actionBufferElapsed = true;
+        actionBufferTimer.Interval = actionBufferTime;
+        actionBufferTimer.Enabled = false;
     }
 
     public override void OnActionReceived(float[] vectorAction)
@@ -1157,7 +952,7 @@ public class PushingAgent : Agent
         {
             if (newVal != null)
             {
-                scenarioController.CenterObjectInView(newVal);
+                //scenarioController.CenterObjectInView(newVal);
             }
         }
     }

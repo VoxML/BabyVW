@@ -498,7 +498,7 @@ public class ScenarioController : MonoBehaviour
         }
     }
 
-    public void PlaceMaterialBlock()
+    public GameObject PlaceMaterialBlock()
     {
         Transform t = interactableObjectTypes[0];
         GameObject newBlock = Instantiate(t.gameObject);
@@ -511,6 +511,21 @@ public class ScenarioController : MonoBehaviour
         newBlock.GetComponent<Collider>().material = physicMaterialTypes[materialTypeIndex];
         newBlock.name = materialTypes[materialTypeIndex].name + " Block";
 
+        return newBlock;
+    }
+
+    public GameObject PlaceGoal()
+    {
+        GameObject newBlock = PlaceMaterialBlock();
+        newBlock.transform.position = new Vector3(UnityEngine.Random.Range(-1.8f, 1.8f), 0.05f, UnityEngine.Random.Range(-1.8f, 1.8f));
+        newBlock.transform.parent = null;
+        newBlock.name = "Target Block";
+
+        return newBlock;
+    }
+
+    public void InitializeVoxemes()
+    {
         voxemeInit.InitializeVoxemes();
         objectsInited = true;
         OnObjectsInited(this, null);

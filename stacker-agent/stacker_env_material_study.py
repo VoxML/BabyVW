@@ -65,106 +65,24 @@ class StackerEnv(gym.Env):
 
     def __init__(self,
         environment_filename=None,
-        visual_observation=False,
-        vector_observation=False,
-        priors=[]):
+        vector_observation=False):
+
         self._env = UnityEnvironment(environment_filename,0)
         self.seed()
         self.resetting = False
         self.num_timesteps = 0
         
-        self.visual_obs = visual_observation
         self.vector_obs = vector_observation
-        self.dict_obs = self.visual_obs and self.vector_obs
-        
-        self.raw_image_space = spaces.Box(
-            0,
-            255,
-            dtype=np.uint8,
-            shape=(84, 84, 3)
-        )
-        
-        self.normalized_image_space = spaces.Box(
-            0.0,
-            1.0,
+
+        self.vector_obs_space = spaces.Box(
+            np.array([-100, -100, -2, -2, -2, -2]),
+            np.array([100, 100, 2, 2, 2, 2]),
             dtype=np.float32,
-            shape=(84, 84, 3)
+            shape=(6,)
         )
-        
-        max_height = 4
-        num_relations = 5
-        obs_space_scale = 1
-        
-        self.priors = priors
-                
-        # height only
-        if self.priors == ['HGT']:
-            self.vector_obs_space = spaces.Box(
-                0.0,
-                float(max_height)*obs_space_scale,
-                dtype=np.float32,
-                shape=(1,)
-            )
-        
-        # relations only
-        if self.priors == ['REL']:
-            self.vector_obs_space = spaces.Box(
-                np.zeros(shape=(num_relations,)),
-                np.ones(shape=(num_relations,))*obs_space_scale,
-                dtype=np.float32,
-                shape=(5,)
-            )
-        
-        # CoG only
-        if self.priors == ['COG']:
-            self.vector_obs_space = spaces.Box(
-                np.array([-1.0*obs_space_scale,-1.0*obs_space_scale]),
-                np.array([1.0*obs_space_scale,1.0*obs_space_scale]),
-                dtype=np.float32,
-                shape=(2,)
-            )
-        
-        # height and relations
-        if self.priors == ['HGT','REL']:
-            self.vector_obs_space = spaces.Box(
-                np.array([0.0,0.0]),
-                np.array([float(max_height)*obs_space_scale,float(num_relations)*obs_space_scale]),
-                dtype=np.float32,
-                shape=(2,)
-            )
-        
-        # height and CoG
-        if self.priors == ['COG','HGT']:
-            self.vector_obs_space = spaces.Box(
-                np.array([0.0,-1.0*obs_space_scale,-1.0*obs_space_scale]),
-                np.array([float(max_height)*obs_space_scale,1.0*obs_space_scale,1.0*obs_space_scale]),
-                dtype=np.float32,
-                shape=(3,)
-            )
-        
-        # relations and CoG
-        if self.priors == ['COG','REL']:
-            self.vector_obs_space = spaces.Box(
-                np.array([0.0,-1.0*obs_space_scale,-1.0*obs_space_scale]),
-                np.array([float(num_relations)*obs_space_scale,1.0*obs_space_scale,1.0*obs_space_scale]),
-                dtype=np.float32,
-                shape=(3,)
-            )
-        
-        # all
-        if self.priors == ['COG','HGT','REL']:
-            self.vector_obs_space = spaces.Box(
-                np.array([0.0,0.0,-1.0*obs_space_scale,-1.0*obs_space_scale]),
-                np.array([float(max_height)*obs_space_scale,float(num_relations)*obs_space_scale,\
-                    -1.0*obs_space_scale,1.0*obs_space_scale]),
-                dtype=np.float32,
-                shape=(4,)
-            )
-        
-        if self.dict_obs:
-            self.image_space = self.normalized_image_space
-        elif self.visual_obs:
-            self.image_space = self.raw_image_space
+
+        self.action_space = spaces.Box(np.array([-100, -100]),
+            np.array([100,100]))
                 
         # reset the environment
         self._env.reset()
@@ -176,25 +94,10 @@ class StackerEnv(gym.Env):
         # get behavior spec
         self.behavior_spec = self._env.behavior_specs[self.behavior_name]
         print(self.behavior_spec)
-
-        # define action and observation space
-        # action: where on the surface of the target block do I put my object?
-        # observation: how tall is the tallest thing in the world?
-        self.action_space = spaces.Box(np.array([0,0]),
-            np.array([1000,1000]))
                     
-        if self.dict_obs:
-            self.observation_space = spaces.Dict(
-                spaces={
-                    "visual_obs" : self.image_space,
-                    "vector_obs" : self.vector_obs_space
-                })
-        elif self.visual_obs:
-            self.observation_space = self.image_space
-        elif self.vector_obs:
-            self.observation_space = self.vector_obs_space
+        self.observation_space = self.vector_obs_space
 
-        self.last_action = np.array([-float('inf'),-float('inf')])
+        self.last_action = np.array([0,0])
         self.last_obs = {}
 
     def step(self, action):
@@ -216,13 +119,9 @@ class StackerEnv(gym.Env):
         if done:
             print("Step %s\nTerminated\n\tObservation: %s\tReward: %s\tInterrupted: %s" % (self.num_timesteps,terminal_info.obs,terminal_info.reward,terminal_info.interrupted))
             
-            if self.dict_obs:
-                obs["visual_obs"] = terminal_info.obs[0]
-                obs["vector_obs"] = terminal_info.obs[1]
-            else:
-                obs = terminal_info.obs[0]
+            obs = terminal_info.obs[0]
             reward = terminal_info.reward[0]
-            self.last_action = np.array([-float('inf'),-float('inf')])
+            self.last_action = np.array([0, 0])
         else:
             self.last_obs = obs
             self.last_action = action
@@ -285,33 +184,8 @@ class StackerEnv(gym.Env):
         obs = self._env._env_state[self.behavior_name][0].obs[0]
         
         if obs is None:
-            if self.dict_obs:
-                obs = {}
-                obs["visual_obs"] = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
-                obs["vector_obs"] = np.array([1+np.random.normal(0,0.1,1)[0]]) # add gaussian noise
-            elif self.visual_obs:
-                obs = np.zeros(self.image_space.shape, dtype=self.image_space.dtype)
-            elif self.vector_obs:
-                if self.priors == ['HGT']:
-                    obs = np.array([obs_space_scale])
-            
-                if self.priors == ['REL']:
-                    obs = np.array([0])
-
-                if self.priors == ['COG']:
-                    obs = np.array([0,0])
-            
-                if self.priors == ['HGT','REL']:
-                    obs = np.array([obs_space_scale,0])
-
-                if self.priors == ['COG','HGT']:
-                    obs = np.array([obs_space_scale,0,0])
-
-                if self.priors == ['COG','REL']:
-                    obs = np.array([0,0,0])
-            
-                if self.priors == ['COG','HGT','REL']:
-                    obs = np.array([obs_space_scale,0,0,0])
+            if self.vector_obs:
+                obs = np.array([0,0,0,0,0,0])
 
             print("obs is None, setting obs to", obs)
         self.resetting = False
