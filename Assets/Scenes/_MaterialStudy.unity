@@ -3402,9 +3402,6 @@ MonoBehaviour:
   observationSize: 1
   useVectorObservations: 1
   noisyVectors: 0
-  useHeight: 1
-  useRelations: 0
-  useCenterOfGravity: 1
   episodeCount: 0
   episodeMaxAttempts: 10
   episodeNumAttempts: 0
@@ -3419,6 +3416,7 @@ MonoBehaviour:
   writeOutSamples: 0
   outFileName: stacker-agent/analysis/trial-data/
   scenarioController: {fileID: 130105524}
+  actionBufferTime: 2000
   actionSpaceLow: {x: 0, y: 0}
   actionSpaceHigh: {x: 1000, y: 1000}
   targetAction: {x: 0, y: 0}
@@ -3437,9 +3435,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 6
     NumStackedVectorObservations: 1
-    VectorActionSize: 01000000
+    VectorActionSize: 02000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
   m_Model: {fileID: 0}
@@ -3455,8 +3453,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1759529654}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.2, z: 0}
+  m_LocalRotation: {x: -0.08717229, y: 0.8995905, z: -0.21045253, w: -0.37262273}
+  m_LocalPosition: {x: 12.674486, y: 8.672139, z: 12.674487}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1236214449}
