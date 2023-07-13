@@ -67,7 +67,12 @@ class StackerEnv(gym.Env):
         environment_filename=None,
         vector_observation=False):
 
-        self._env = UnityEnvironment(environment_filename,0)
+        print("Attempting to connect to Unity Environment")
+        try:
+            self._env = UnityEnvironment()
+            print("Successfully connected to Unity Environment")
+        except Exception as e:
+            print("Failed to connect to Unity Environment:", e)
         self.seed()
         self.resetting = False
         self.num_timesteps = 0

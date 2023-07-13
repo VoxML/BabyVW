@@ -44,6 +44,8 @@ def main():
     
     os.makedirs(log_dir, exist_ok=True)
 
+    print("Initializing Stacker Environment")
+
     env = StackerEnv(vector_observation=vector_obs)
 
     #env = make_vec_env(lambda:env, n_envs=2)
